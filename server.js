@@ -136,7 +136,43 @@ app.get('/api/export-users', async (req, res) => {
         res.status(500).json({ error: 'Failed to export users' });
     }
 });
+// Add this route to your Express server
 
+// Route to display QR code
+app.get('/qr', (req, res) => {
+  if (global.currentQR) {
+    res.send(`
+      <html>
+        <head><title>WhatsApp QR Code</title></head>
+        <body style="text-align: center; padding: 50px;">
+          <h1>📱 Scan with WhatsApp</h1>
+          <div id="qrcode"></div>
+          <p>Open WhatsApp → Linked Devices → Scan QR Code</p>
+          <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+          <script>
+            QRCode.toCanvas(document.getElementById('qrcode'), '${global.currentQR}', function (error) {
+              if (error) console.error(error);
+              console.log('QR code generated successfully!');
+            });
+          </script>
+        </body>
+      </html>
+    `);
+  } else {
+    res.send(`
+      <html>
+        <body style="text-align: center; padding: 50px;">
+          <h1>⏳ Waiting for QR Code...</h1>
+          <p>WhatsApp client is initializing. Refresh in a few seconds.</p>
+          <script>setTimeout(() => location.reload(), 3000);</script>
+        </body>
+      </html>
+    `);
+  }
+});
+
+// Make currentQR available globally
+global.currentQR = null;
 // Handle message retry
 app.post('/api/retry-message', async (req, res) => {
     try {

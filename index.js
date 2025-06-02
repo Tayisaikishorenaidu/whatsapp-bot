@@ -134,30 +134,39 @@ client.pupBrowser?.on("disconnected", () => {
   }, 5000);
 });
 
+// Add this to your main file where you handle QR code generation
+
 // Event: QR Code generation
 client.on("qr", (qr) => {
-  console.log("🔗 QR code generated, check the dashboard to scan");
-  // Ensure the QR code is properly formatted
-  const qrData = qr.startsWith('http') ? qr : `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qr)}`;
+  console.log("🔗 QR code generated!");
+  console.log("📱 Scan this QR code with WhatsApp:");
   
-  console.log('Sending QR code to dashboard...');
-  // Send QR code to dashboard via WebSocket
+  // Generate QR code in terminal (for logs)
+  qrcode.generate(qr, { small: true });
+  
+  // Also store QR for web dashboard
+  global.currentQR = qr;
+  
+  // Send QR code to dashboard via WebSocket if available
   if (global.broadcastStatus) {
     try {
       global.broadcastStatus({
         type: 'qr',
-        qr: qrData,
-        status: 'QR code ready',
+        qr: qr,
+        status: 'QR code ready - Scan with WhatsApp',
         timestamp: new Date().toISOString()
       });
-      console.log('QR code sent to dashboard');
+      console.log('✅ QR code sent to dashboard');
     } catch (error) {
-      console.error('Error sending QR code to dashboard:', error);
+      console.error('❌ Error sending QR code to dashboard:', error);
     }
-  } else {
-    console.error('broadcastStatus function not available');
   }
+  
+  console.log("🌐 QR code also available at your dashboard URL");
 });
+
+// Make currentQR available globally
+global.currentQR = null;
 
 // Event: Client is ready
 client.on("ready", () => {
