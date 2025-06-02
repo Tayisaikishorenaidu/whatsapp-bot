@@ -81,14 +81,19 @@ const DEMO_SELECTION_TIMEOUT = 30000; // 30 seconds timeout for demo selection
 const DEMO_PROMPT_DELAY = 20000; // 20 seconds delay before sending demo prompt
 const HELP_MESSAGE_TIMEOUT = 30000; // 30 seconds timeout for help message
 
-// Working Chrome configuration from GitHub issue #972
+// Updated Puppeteer configuration for your Docker setup in index.js
+
+const { Client, LocalAuth } = require('whatsapp-web.js');
+
+// Docker-optimized Chrome configuration
 const client = new Client({
   authStrategy: new LocalAuth({
-    clientId: "whatsapp-bot",
+    clientId: "whatsapp-bot-docker",
+    dataPath: "./.wwebjs_auth"
   }),
   puppeteer: {
     headless: true,
-    executablePath: '/usr/bin/google-chrome-stable',
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -96,6 +101,7 @@ const client = new Client({
       '--disable-accelerated-2d-canvas',
       '--no-first-run',
       '--no-zygote',
+      '--single-process', // Important for Docker
       '--disable-gpu',
       '--disable-extensions',
       '--disable-default-apps',
@@ -104,10 +110,25 @@ const client = new Client({
       '--disable-backgrounding-occluded-windows',
       '--disable-renderer-backgrounding',
       '--disable-features=TranslateUI',
-      '--disable-ipc-flooding-protection'
+      '--disable-ipc-flooding-protection',
+      '--disable-web-security',
+      '--disable-features=VizDisplayCompositor',
+      '--disable-logging',
+      '--silent',
+      '--disable-crash-reporter',
+      '--disable-in-process-stack-traces',
+      '--disable-hang-monitor',
+      '--disable-histogram-customizer',
+      '--disable-metrics',
+      '--disable-metrics-reporting',
+      '--user-data-dir=/tmp/chrome-user-data',
+      '--data-path=/tmp/chrome-data',
+      '--homedir=/tmp',
+      '--disk-cache-dir=/tmp/chrome-cache'
     ],
     ignoreHTTPSErrors: true,
-    protocolTimeout: 60000,
+    protocolTimeout: 180000, // Increased timeout for Railway
+    timeout: 180000,
     defaultViewport: {
       width: 1280,
       height: 720,
@@ -115,11 +136,121 @@ const client = new Client({
   },
   restartOnAuthFail: true,
   takeoverOnConflict: true,
-  takeoverTimeoutMs: 60000,
+  takeoverTimeoutMs: 120000, // Increased for slower Docker startup
 });
 
-// Make client available globally for API endpoints
-global.whatsappClient = client;
+// Enhanced connection handlers for Docker environment
+client.on('qr', (qr) => {
+  console.log('🔗 QR code generated in Docker environment');
+  console.log('📱 Scan this QR code with WhatsApp');
+  
+  global.currentQR = qr;
+  
+  if (global.broadcastStatus) {
+    global.broadcastStatus({
+      type: 'qr',
+      qr: qr,
+      status: 'QR code ready - Scan with WhatsApp',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+client.on('ready', () => {
+  console.log('✅ WhatsApp Client ready in Docker/Railway!');
+  global.botStatus = true;
+  
+  if (global.broadcastStatus) {
+    global.broadcastStatus({
+      type: 'status',
+      status: 'connected',
+      message: 'WhatsApp is connected and ready in Docker',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+client.on('auth_failure', (msg) => {
+  console.error('❌ Authentication failed in Docker:', msg);
+  global.botStatus = false;
+  
+  if (global.broadcastStatus) {
+    global.broadcastStatus({
+      type: 'status',
+      status: 'auth_failed',
+      message: 'Authentication failed: ' + msg,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // Retry after longer delay in Docker
+  setTimeout(() => {
+    console.log('🔄 Retrying authentication in Docker...');
+    client.initialize();
+  }, 60000);
+});
+
+client.on('disconnected', (reason) => {
+  console.log('📴 Client disconnected in Docker:', reason);
+  global.botStatus = false;
+  
+  if (global.broadcastStatus) {
+    global.broadcastStatus({
+      type: 'status',
+      status: 'disconnected',
+      message: 'Disconnected: ' + reason,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // Auto-reconnect with longer delay for Docker
+  setTimeout(() => {
+    console.log('🔄 Attempting to reconnect in Docker...');
+    client.initialize();
+  }, 30000);
+});
+
+// Docker initialization with extended retry logic
+const initializeClientForDocker = async () => {
+  let attempts = 0;
+  const maxAttempts = 5;
+  
+  while (attempts < maxAttempts) {
+    try {
+      attempts++;
+      console.log(`🐳 Initializing WhatsApp client in Docker (attempt ${attempts}/${maxAttempts})`);
+      
+      await client.initialize();
+      console.log('✅ WhatsApp client initialized successfully in Docker');
+      break;
+      
+    } catch (error) {
+      console.error(`❌ Docker initialization attempt ${attempts} failed:`, error.message);
+      
+      if (attempts === maxAttempts) {
+        console.error('❌ All Docker initialization attempts failed');
+        
+        // Don't exit in production, keep trying
+        setTimeout(() => {
+          console.log('🔄 Restarting initialization process...');
+          initializeClientForDocker();
+        }, 120000); // Wait 2 minutes before full restart
+        
+        return;
+      }
+      
+      // Progressive delay between attempts
+      const delay = Math.min(30000 * attempts, 120000);
+      console.log(`⏳ Waiting ${delay/1000}s before next attempt...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+};
+
+// Start the initialization
+initializeClientForDocker();
+
+module.exports = client;
 
 // Add error handler for browser errors
 client.pupBrowser?.on("disconnected", () => {

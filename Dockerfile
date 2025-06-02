@@ -57,17 +57,32 @@ RUN npm install
 # Copy application code
 COPY . .
 
+# Create directories for Chrome and WhatsApp data
+RUN mkdir -p /app/.wwebjs_auth /app/data /tmp/chrome-user-data /tmp/chrome-data /tmp/chrome-cache
+
 # Create non-root user for security
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser/Downloads \
     && chown -R pptruser:pptruser /home/pptruser \
-    && chown -R pptruser:pptruser /app
+    && chown -R pptruser:pptruser /app \
+    && chown -R pptruser:pptruser /tmp/chrome-user-data \
+    && chown -R pptruser:pptruser /tmp/chrome-data \
+    && chown -R pptruser:pptruser /tmp/chrome-cache
 
 # Switch to non-root user
 USER pptruser
 
+# Set environment variables for Chrome
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+ENV CHROME_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
 # Expose port
 EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
 
 # Start the application
 CMD ["npm", "start"]
