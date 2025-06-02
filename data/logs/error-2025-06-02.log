@@ -1,0 +1,83 @@
+[2025-06-02T04:09:07.556Z] [uncaughtException] listen EADDRINUSE: address already in use :::3000
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+    at listenInCluster (node:net:1965:12)
+    at Server.listen (node:net:2067:7)
+    at Function.listen (D:\Code\StudentAI\Wp-bot\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Code\StudentAI\Wp-bot\server.js:99:20)
+    at Module._compile (node:internal/modules/cjs/loader:1469:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+    at Module.load (node:internal/modules/cjs/loader:1288:32)
+    at Module._load (node:internal/modules/cjs/loader:1104:12)
+    at Module.require (node:internal/modules/cjs/loader:1311:19)
+    at require (node:internal/modules/helpers:179:18)
+    at Object.<anonymous> (D:\Code\StudentAI\Wp-bot\index.js:67:16)
+    at Module._compile (node:internal/modules/cjs/loader:1469:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+    at Module.load (node:internal/modules/cjs/loader:1288:32)
+    at Module._load (node:internal/modules/cjs/loader:1104:12)
+
+[2025-06-02T04:11:02.337Z] [uncaughtException] listen EADDRINUSE: address already in use :::3000
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+    at listenInCluster (node:net:1965:12)
+    at Server.listen (node:net:2067:7)
+    at Function.listen (D:\Code\StudentAI\Wp-bot\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Code\StudentAI\Wp-bot\server.js:136:24)
+    at Module._compile (node:internal/modules/cjs/loader:1469:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+    at Module.load (node:internal/modules/cjs/loader:1288:32)
+    at Module._load (node:internal/modules/cjs/loader:1104:12)
+    at Module.require (node:internal/modules/cjs/loader:1311:19)
+    at require (node:internal/modules/helpers:179:18)
+    at Object.<anonymous> (D:\Code\StudentAI\Wp-bot\index.js:67:16)
+    at Module._compile (node:internal/modules/cjs/loader:1469:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+    at Module.load (node:internal/modules/cjs/loader:1288:32)
+    at Module._load (node:internal/modules/cjs/loader:1104:12)
+
+[2025-06-02T04:11:23.773Z] [uncaughtException] listen EADDRINUSE: address already in use :::3000
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+    at listenInCluster (node:net:1965:12)
+    at Server.listen (node:net:2067:7)
+    at Function.listen (D:\Code\StudentAI\Wp-bot\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Code\StudentAI\Wp-bot\server.js:136:24)
+    at Module._compile (node:internal/modules/cjs/loader:1469:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+    at Module.load (node:internal/modules/cjs/loader:1288:32)
+    at Module._load (node:internal/modules/cjs/loader:1104:12)
+    at Module.require (node:internal/modules/cjs/loader:1311:19)
+    at require (node:internal/modules/helpers:179:18)
+    at Object.<anonymous> (D:\Code\StudentAI\Wp-bot\index.js:67:16)
+    at Module._compile (node:internal/modules/cjs/loader:1469:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1548:10)
+    at Module.load (node:internal/modules/cjs/loader:1288:32)
+    at Module._load (node:internal/modules/cjs/loader:1104:12)
+
+[2025-06-02T04:19:43.425Z] [client] Client disconnected: LOGOUT
+Error: Client disconnected: LOGOUT
+    at Client.<anonymous> (D:\Code\StudentAI\Wp-bot\src\errorHandler.js:63:18)
+    at Client.emit (node:events:530:35)
+    at D:\Code\StudentAI\Wp-bot\node_modules\whatsapp-web.js\src\Client.js:333:22
+    at D:\Code\StudentAI\Wp-bot\node_modules\puppeteer-core\lib\cjs\third_party\mitt\index.js:3:232
+    at Array.map (<anonymous>)
+    at Object.emit (D:\Code\StudentAI\Wp-bot\node_modules\puppeteer-core\lib\cjs\third_party\mitt\index.js:3:216)
+    at CDPPage.emit (D:\Code\StudentAI\Wp-bot\node_modules\puppeteer-core\lib\cjs\puppeteer\common\EventEmitter.js:87:22)
+    at D:\Code\StudentAI\Wp-bot\node_modules\puppeteer-core\lib\cjs\puppeteer\common\Page.js:132:25
+    at D:\Code\StudentAI\Wp-bot\node_modules\puppeteer-core\lib\cjs\third_party\mitt\index.js:3:232
+    at Array.map (<anonymous>)
+    at Object.emit (D:\Code\StudentAI\Wp-bot\node_modules\puppeteer-core\lib\cjs\third_party\mitt\index.js:3:216)
+    at FrameManager.emit (D:\Code\StudentAI\Wp-bot\node_modules\puppeteer-core\lib\cjs\puppeteer\common\EventEmitter.js:87:22)
+    at FrameManager._FrameManager_onFrameNavigated (D:\Code\StudentAI\Wp-bot\node_modules\puppeteer-core\lib\cjs\puppeteer\common\FrameManager.js:262:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+[2025-06-02T04:19:49.692Z] [unhandledRejection] Unhandled Rejection: Error: Error: EBUSY: resource busy or locked, unlink 'D:\Code\StudentAI\Wp-bot\.wwebjs_auth\session-whatsapp-bot\first_party_sets.db-journal'
+Error: Unhandled Rejection: Error: Error: EBUSY: resource busy or locked, unlink 'D:\Code\StudentAI\Wp-bot\.wwebjs_auth\session-whatsapp-bot\first_party_sets.db-journal'
+    at process.<anonymous> (D:\Code\StudentAI\Wp-bot\src\errorHandler.js:42:18)
+    at process.emit (node:events:518:28)
+    at emitUnhandledRejection (node:internal/process/promises:250:13)
+    at throwUnhandledRejectionsMode (node:internal/process/promises:385:19)
+    at processPromiseRejections (node:internal/process/promises:470:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:96:32)
+

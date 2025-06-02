@@ -1,0 +1,1 @@
+This is a placeholder for a signup video file. In a real implementation, you would upload actual video files through the web dashboard.

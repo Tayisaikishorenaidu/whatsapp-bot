@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bot Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .stats-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .stats-card .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex-grow: 1;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-header {
+            background-color: #25D366;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px;
+            font-weight: bold;
+        }
+        .message-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .message-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: flex-start;
+        }
+        .message-item:last-child {
+            border-bottom: none;
+        }
+        .message-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #555;
+        }
+        .message-content {
+            flex: 1;
+        }
+        .message-sender {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .message-text {
+            margin-bottom: 5px;
+        }
+        .message-time {
+            font-size: 12px;
+            color: #888;
+        }
+        .message-options {
+            background-color: #f9f9f9;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        .message-media {
+            margin-top: 10px;
+        }
+        .message-media img {
+            max-width: 200px;
+            border-radius: 5px;
+        }
+        .message-media audio, .message-media video {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        .stats-card {
+            text-align: center;
+            padding: 20px;
+        }
+        .stats-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #25D366;
+        }
+        .stats-label {
+            font-size: 14px;
+            color: #555;
+        }
+        .bot-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .bot-status:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .status-online {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-offline {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .status-connecting {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        #qrcode {
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        #qrcode img {
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .modal-content {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            background-color: #25D366;
+            color: white;
+            border-bottom: none;
+        }
+        
+        .btn-close {
+            filter: invert(1);
+        }
+        .nav-tabs .nav-link.active {
+            background-color: #25D366;
+            color: white;
+            border-color: #25D366;
+        }
+        .nav-tabs .nav-link {
+            color: #555;
+        }
+        .upload-form {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <h1><i class="fab fa-whatsapp text-success me-2"></i> WhatsApp Bot Dashboard</h1>
+                        <div class="d-flex align-items-center">
+                            <span id="connectionStatus" class="bot-status <%= botStatus ? 'status-online' : 'status-offline' %>">
+                                <i class="fas <%= botStatus ? 'fa-circle-check' : 'fa-circle-xmark' %>"></i>
+                                <%= botStatus ? 'Bot Online' : 'Bot Offline' %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4 d-flex">
+                <div class="card stats-card w-100">
+                    <div class="card-body">
+                        <div class="stats-number"><%= totalMessages %></div>
+                        <div class="stats-label">Total Messages</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex">
+                <div class="card stats-card w-100">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center justify-content-between h-100">
+                            <div class="text-center flex-grow-1">
+                                <div class="stats-number"><%= uniqueContacts %></div>
+                                <div class="stats-label">Unique Contacts</div>
+                            </div>
+                            <div class="ms-2">
+                                <a href="javascript:void(0)" 
+                                   class="btn btn-sm btn-outline-success p-1" 
+                                   id="exportUsersBtn" 
+                                   data-bs-toggle="tooltip" 
+                                   title="Export to Excel"
+                                   onclick="downloadExcel()">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex">
+                <div class="card stats-card w-100">
+                    <div class="card-body">
+                        <div class="stats-number"><%= totalResponses %></div>
+                        <div class="stats-label">Bot Responses</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-comments me-2"></i> Recent Conversations
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="message-container">
+                            <% if (messages.length === 0) { %>
+                                <div class="text-center p-4">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <p>No messages yet</p>
+                                </div>
+                            <% } else { %>
+                                <% messages.filter(message => message.responseType || message.options).forEach(function(message) { %>
+                                    <div class="message-item">
+                                        <div class="message-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="message-content">
+                                            <div class="message-sender d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <%= message.sender %>
+                                                    <% if (message.isGroup) { %>
+                                                        <span class="badge bg-info ms-2">Group</span>
+                                                    <% } %>
+                                                </div>
+                                                <% if (message.status === 'failed') { %>
+                                                    <button class="btn btn-sm btn-warning retry-message-btn" 
+                                                            data-contact-id="<%= message.contactId %>"
+                                                            data-message="<%= message.text %>">
+                                                        <i class="fas fa-redo"></i> Retry
+                                                    </button>
+                                                <% } %>
+                                            </div>
+                                            <div class="message-text"><%= message.text %></div>
+                                            <% if (message.status === 'failed') { %>
+                                                <div class="alert alert-warning p-2 mt-2 mb-0">
+                                                    <i class="fas fa-exclamation-triangle"></i> Failed to send response
+                                                </div>
+                                            <% } %>
+                                            <% if (message.options) { %>
+                                                <div class="message-options">
+                                                    <small class="text-muted">Options sent:</small>
+                                                    <ul class="mb-0 ps-3">
+                                                        <% message.options.forEach(function(option) { %>
+                                                            <li><%= option %></li>
+                                                        <% }); %>
+                                                    </ul>
+                                                </div>
+                                            <% } %>
+                                            <% if (message.responseType) { %>
+                                                <div class="message-options">
+                                                    <small class="text-muted">Response type: <%= message.responseType %></small>
+                                                    <% if (message.mediaUrl) { %>
+                                                        <div class="message-media mt-2">
+                                                            <% if (message.responseType === 'image') { %>
+                                                                <img src="<%= message.mediaUrl %>" alt="Sent image">
+                                                            <% } else if (message.responseType === 'audio') { %>
+                                                                <audio controls src="<%= message.mediaUrl %>"></audio>
+                                                            <% } else if (message.responseType === 'video') { %>
+                                                                <video controls width="200" src="<%= message.mediaUrl %>"></video>
+                                                            <% } %>
+                                                        </div>
+                                                    <% } %>
+                                                </div>
+                                            <% } %>
+                                            <div class="message-time">
+                                                <i class="far fa-clock me-1"></i> <%= message.time %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <ul class="nav nav-tabs mb-3">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#messages">Messages</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#settings">Settings</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="messages">
+                        <div class="message-container">
+                            <% if (messages.length === 0) { %>
+                                <div class="text-center p-4">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <p>No messages yet</p>
+                                </div>
+                            <% } else { %>
+                                <% messages.forEach(function(message) { %>
+                                    <div class="message-item">
+                                        <div class="message-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="message-content">
+                                            <div class="message-sender d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <%= message.sender %>
+                                                    <% if (message.isGroup) { %>
+                                                        <span class="badge bg-info ms-2">Group</span>
+                                                    <% } %>
+                                                </div>
+                                                <% if (message.status === 'failed') { %>
+                                                    <button class="btn btn-sm btn-warning retry-message-btn" 
+                                                            data-contact-id="<%= message.contactId %>"
+                                                            data-message="<%= message.text %>">
+                                                        <i class="fas fa-redo"></i> Retry
+                                                    </button>
+                                                <% } %>
+                                            </div>
+                                            <div class="message-text"><%= message.text %></div>
+                                            <div class="message-time"><%= message.time %></div>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="settings">
+                        <form action="/settings" method="POST">
+                            <div class="mb-3">
+                                <label for="replyDelay" class="form-label">Reply Delay (seconds)</label>
+                                <input type="number" class="form-control" id="replyDelay" name="replyDelay" value="<%= settings.replyDelay %>" min="0">
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="enableAutoReply" name="enableAutoReply" <%= settings.enableAutoReply ? 'checked' : '' %>>
+                                <label class="form-check-label" for="enableAutoReply">Enable Auto-Reply</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="supportNumber" class="form-label">Support WhatsApp Number</label>
+                                <input type="text" class="form-control" id="supportNumber" name="supportNumber" value="<%= settings.supportNumber %>">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Status Modal -->
+    <div class="modal fade" id="connectionModal" tabindex="-1" aria-labelledby="connectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="connectionModalLabel">WhatsApp Connection</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="qrCodeContainer" class="mb-3" style="display: none;">
+                        <p class="text-muted mb-3">Scan this QR code with your WhatsApp</p>
+                        <div id="qrcode" class="d-flex justify-content-center mb-3"></div>
+                        <p class="text-muted small">Open WhatsApp > Menu > Linked Devices > Link a Device</p>
+                    </div>
+                    <div id="connectionStatusMessage" class="alert"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="reconnectBtn" style="display: none;">Reconnect</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script>
+        // Function to download Excel file
+        function downloadExcel() {
+            const btn = document.getElementById('exportUsersBtn');
+            const originalHtml = btn.innerHTML;
+            const originalTitle = btn.getAttribute('title');
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.setAttribute('title', 'Exporting...');
+            
+            // Update tooltip
+            const tooltip = bootstrap.Tooltip.getInstance(btn);
+            if (tooltip) {
+                tooltip.dispose();
+                btn.setAttribute('data-bs-original-title', 'Exporting...');
+                new bootstrap.Tooltip(btn).show();
+            }
+            
+            // Create a hidden iframe to handle the download
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = '/api/export-users';
+            document.body.appendChild(iframe);
+            
+            // Reset button after a short delay
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                btn.setAttribute('title', originalTitle);
+                btn.setAttribute('data-bs-original-title', originalTitle);
+                
+                if (tooltip) {
+                    tooltip.dispose();
+                    new bootstrap.Tooltip(btn);
+                }
+                
+                // Remove the iframe after download
+                if (document.body.contains(iframe)) {
+                    document.body.removeChild(iframe);
+                }
+            }, 3000);
+        }
+        
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Handle export users button click
+            var exportBtn = document.getElementById('exportUsersBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const btn = this;
+                    const originalHtml = btn.innerHTML;
+                    const originalTitle = btn.getAttribute('title');
+                    
+                    // Show loading state
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    btn.setAttribute('title', 'Exporting...');
+                    
+                    // Update tooltip
+                    const tooltip = bootstrap.Tooltip.getInstance(btn);
+                    if (tooltip) {
+                        tooltip.dispose();
+                        btn.setAttribute('data-bs-original-title', 'Exporting...');
+                        new bootstrap.Tooltip(btn);
+                        tooltip.show();
+                    }
+                    
+                    // Trigger the download
+                    window.location.href = btn.href;
+                    
+                    // Reset button after a short delay
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                        btn.setAttribute('title', originalTitle);
+                        btn.setAttribute('data-bs-original-title', originalTitle);
+                        
+                        if (tooltip) {
+                            tooltip.dispose();
+                            new bootstrap.Tooltip(btn);
+                        }
+                    }, 5000);
+                });
+            }
+        });
+        
+        // WebSocket connection for real-time updates
+        let socket;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = 3000; // 3 seconds
+
+        function connectWebSocket() {
+            // Use the same host and protocol as the current page
+            const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const host = window.location.host;
+            // Remove any existing WebSocket path and add /ws
+            const path = '/ws';
+            const wsUrl = `${protocol}${host}${path}`;
+            
+            console.log('Connecting to WebSocket:', wsUrl);
+            
+            socket = new WebSocket(wsUrl);
+            
+            // Set binary type to arraybuffer for better compatibility
+            socket.binaryType = 'arraybuffer';
+
+            socket.onopen = () => {
+                console.log('WebSocket connected');
+                reconnectAttempts = 0;
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (error) {
+                    console.error('Error parsing WebSocket message:', error);
+                }
+            };
+
+            socket.onclose = () => {
+                console.log('WebSocket disconnected');
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    console.log(`Reconnecting in ${reconnectDelay/1000} seconds... (${reconnectAttempts}/${maxReconnectAttempts})`);
+                    setTimeout(connectWebSocket, reconnectDelay);
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+
+        function handleWebSocketMessage(data) {
+            console.log('WebSocket message received:', data);
+            
+            const statusElement = document.getElementById('connectionStatus');
+            const statusMessage = document.getElementById('connectionStatusMessage');
+            const qrCodeContainer = document.getElementById('qrCodeContainer');
+            const qrCodeElement = document.getElementById('qrcode');
+            const modal = new bootstrap.Modal(document.getElementById('connectionModal'));
+            const reconnectBtn = document.getElementById('reconnectBtn');
+
+            console.log('Handling message type:', data.type);
+            
+            if (data.type === 'qr') {
+                console.log('QR code data received, type:', typeof data.qr);
+                
+                // Show the QR code container
+                qrCodeContainer.style.display = 'block';
+                
+                // Clear previous QR code if any
+                qrCodeElement.innerHTML = '';
+                
+                // Check if we have a direct URL to a QR code image
+                if (typeof data.qr === 'string' && data.qr.startsWith('http')) {
+                    console.log('Using direct QR code URL');
+                    // If it's a URL, create an image element
+                    const img = document.createElement('img');
+                    img.src = data.qr;
+                    img.alt = 'WhatsApp QR Code';
+                    img.style.maxWidth = '100%';
+                    img.onload = () => console.log('QR code image loaded');
+                    img.onerror = (e) => console.error('Error loading QR code image:', e);
+                    qrCodeElement.appendChild(img);
+                } else {
+                    // Otherwise, try to generate QR code from text
+                    console.log('Generating QR code from text...');
+                    try {
+                        new QRCode(qrCodeElement, {
+                            text: data.qr,
+                            width: 200,
+                            height: 200,
+                            colorDark: '#000000',
+                            colorLight: '#ffffff',
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                        console.log('QR code generated successfully');
+                    } catch (error) {
+                        console.error('Error generating QR code:', error);
+                        qrCodeElement.innerHTML = `
+                            <div class="alert alert-danger">
+                                <p>Error generating QR code: ${error.message}</p>
+                                <p>Please try refreshing the page or contact support.</p>
+                                <pre style="display: none;">${JSON.stringify(data, null, 2)}</pre>
+                            </div>`;
+                        return;
+                    }
+                }
+                
+                statusMessage.className = 'alert alert-info';
+                statusMessage.innerHTML = 'Scan the QR code with your WhatsApp to connect';
+                
+                // Show modal if not already shown
+                if (!modal._isShown) {
+                    modal.show();
+                }
+                
+                // Update status indicator
+                statusElement.className = 'bot-status status-connecting';
+                statusElement.innerHTML = '<i class="fas fa-qrcode"></i> Awaiting Scan';
+                
+            } else if (data.type === 'status') {
+                if (data.status === 'connected') {
+                    // Update status to connected
+                    statusElement.className = 'bot-status status-online';
+                    statusElement.innerHTML = '<i class="fas fa-circle-check"></i> Bot Online';
+                    
+                    // Update modal
+                    statusMessage.className = 'alert alert-success';
+                    statusMessage.textContent = data.message;
+                    qrCodeContainer.style.display = 'none';
+                    reconnectBtn.style.display = 'none';
+                    
+                    // Auto-close modal after 2 seconds
+                    setTimeout(() => {
+                        if (modal._isShown) {
+                            modal.hide();
+                        }
+                    }, 2000);
+                    
+                } else if (data.status === 'disconnected' || data.status === 'auth_failed') {
+                    // Update status to disconnected
+                    statusElement.className = 'bot-status status-offline';
+                    statusElement.innerHTML = '<i class="fas fa-circle-xmark"></i> Bot Offline';
+                    
+                    // Update modal
+                    statusMessage.className = 'alert alert-danger';
+                    statusMessage.textContent = data.message;
+                    qrCodeContainer.style.display = 'none';
+                    reconnectBtn.style.display = 'block';
+                    
+                    // Show modal if not already shown
+                    if (!modal._isShown) {
+                        modal.show();
+                    }
+                }
+            }
+        }
+
+        // Initialize WebSocket connection when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded, connecting WebSocket...');
+            
+            // Show connection status
+            const statusElement = document.getElementById('connectionStatus');
+            if (statusElement) {
+                statusElement.innerHTML = '<i class="fas fa-sync fa-spin"></i> Connecting...';
+                statusElement.className = 'bot-status status-connecting';
+            }
+            
+            // Connect WebSocket
+            connectWebSocket();
+            
+            // Show connection modal if not connected after 1 second
+            setTimeout(() => {
+                if (statusElement && statusElement.classList.contains('status-connecting')) {
+                    const modal = new bootstrap.Modal(document.getElementById('connectionModal'));
+                    modal.show();
+                    
+                    // Update status message
+                    const statusMessage = document.getElementById('connectionStatusMessage');
+                    if (statusMessage) {
+                        statusMessage.className = 'alert alert-warning';
+                        statusMessage.textContent = 'Connecting to server...';
+                    }
+                }
+            }, 1000);
+            
+            // Add error handling for QR code library
+            if (typeof QRCode === 'undefined') {
+                console.error('QRCode library not loaded!');
+                const qrCodeElement = document.getElementById('qrcode');
+                if (qrCodeElement) {
+                    qrCodeElement.innerHTML = `
+                        <div class="alert alert-danger">
+                            <p>QR Code library failed to load. Please refresh the page.</p>
+                            <p>If the problem persists, check your internet connection.</p>
+                        </div>`;
+                }
+            }
+        });
+        
+        // Handle reconnect button click
+        document.getElementById('reconnectBtn').addEventListener('click', () => {
+            window.location.reload();
+        });
+        
+        // Show connection modal when clicking on status
+        document.getElementById('connectionStatus').addEventListener('click', () => {
+            const modal = new bootstrap.Modal(document.getElementById('connectionModal'));
+            modal.show();
+        });
+
+        // Handle retry message button click
+        document.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('retry-message-btn')) {
+                const button = e.target;
+                const messageItem = button.closest('.message-item');
+                const contactId = button.dataset.contactId;
+                const message = button.dataset.message;
+                
+                if (!contactId || !message) return;
+                
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                
+                try {
+                    const response = await fetch('/api/retry-message', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contactId,
+                            message
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        button.innerHTML = '<i class="fas fa-check"></i> Sent';
+                        button.classList.remove('btn-warning');
+                        button.classList.add('btn-success');
+                        
+                        // Add a success message
+                        const successAlert = document.createElement('div');
+                        successAlert.className = 'alert alert-success mt-2 mb-0';
+                        successAlert.textContent = 'Message sent successfully!';
+                        messageItem.appendChild(successAlert);
+                        
+                        // Remove the button after success
+                        setTimeout(() => {
+                            button.remove();
+                        }, 3000);
+                    } else {
+                        throw new Error(result.error || 'Failed to send message');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    button.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed';
+                    button.classList.remove('btn-warning');
+                    button.classList.add('btn-danger');
+                    
+                    // Show error message
+                    const errorAlert = document.createElement('div');
+                    errorAlert.className = 'alert alert-danger mt-2 mb-0';
+                    errorAlert.textContent = 'Failed to send: ' + error.message;
+                    messageItem.appendChild(errorAlert);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

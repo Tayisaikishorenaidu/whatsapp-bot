@@ -1,0 +1,1 @@
+This is a placeholder for a welcome audio file. In a real implementation, you would upload actual audio files through the web dashboard.

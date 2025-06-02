@@ -1,0 +1,9 @@
+[2025-05-31T05:01:14.649Z] [unhandledRejection] Unhandled Rejection: TypeError: "I am still waiting for your reply for preferred " is not a function
+Error: Unhandled Rejection: TypeError: "I am still waiting for your reply for preferred " is not a function
+    at process.<anonymous> (C:\Users\user\Downloads\wp-bot\src\errorHandler.js:42:18)
+    at process.emit (node:events:518:28)
+    at emitUnhandledRejection (node:internal/process/promises:250:13)
+    at throwUnhandledRejectionsMode (node:internal/process/promises:385:19)
+    at processPromiseRejections (node:internal/process/promises:470:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:96:32)
+

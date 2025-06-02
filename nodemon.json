@@ -1,0 +1,20 @@
+{
+  "verbose": true,
+  "ignore": [
+    ".git",
+    "node_modules/**/node_modules",
+    "data/**",
+    ".wwebjs_auth/**"
+  ],
+  "watch": [
+    "index.js",
+    "server.js",
+    "src/**/*.js",
+    "views/**/*.ejs"
+  ],
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "ext": "js,json,ejs",
+  "delay": "2000"
+}
