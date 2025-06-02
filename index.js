@@ -81,7 +81,7 @@ const DEMO_SELECTION_TIMEOUT = 30000; // 30 seconds timeout for demo selection
 const DEMO_PROMPT_DELAY = 20000; // 20 seconds delay before sending demo prompt
 const HELP_MESSAGE_TIMEOUT = 30000; // 30 seconds timeout for help message
 
-// Railway Chrome configuration
+// Working Chrome configuration from GitHub issue #972
 const client = new Client({
   authStrategy: new LocalAuth({
     clientId: "whatsapp-bot",
@@ -98,11 +98,13 @@ const client = new Client({
       '--no-zygote',
       '--disable-gpu',
       '--disable-extensions',
-      '--disable-component-extensions-with-background-pages',
       '--disable-default-apps',
-      '--mute-audio',
-      '--window-size=1280,720',
-      '--single-process'
+      '--disable-translate',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--disable-features=TranslateUI',
+      '--disable-ipc-flooding-protection'
     ],
     ignoreHTTPSErrors: true,
     protocolTimeout: 60000,
