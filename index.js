@@ -81,35 +81,27 @@ const DEMO_SELECTION_TIMEOUT = 30000; // 30 seconds timeout for demo selection
 const DEMO_PROMPT_DELAY = 20000; // 20 seconds delay before sending demo prompt
 const HELP_MESSAGE_TIMEOUT = 30000; // 30 seconds timeout for help message
 
-// Replace the existing Chrome configuration in your index.js
+// Updated Chrome configuration based on Puppeteer troubleshooting guide
 const client = new Client({
   authStrategy: new LocalAuth({
     clientId: "whatsapp-bot",
   }),
   puppeteer: {
     headless: true,
-    // Render-compatible Chrome path
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || 
-                   process.env.GOOGLE_CHROME_BIN || 
-                   '/usr/bin/google-chrome-stable',
+    executablePath: '/usr/bin/google-chrome-stable',
     args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-accelerated-2d-canvas",
-      "--no-first-run",
-      "--no-zygote",
-      "--disable-gpu",
-      "--disable-extensions",
-      "--disable-component-extensions-with-background-pages",
-      "--disable-default-apps",
-      "--mute-audio",
-      "--window-size=1280,720",
-      // Render-specific optimizations
-      "--single-process",
-      "--disable-background-timer-throttling",
-      "--disable-renderer-backgrounding",
-      "--disable-backgrounding-occluded-windows"
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-gpu',
+      '--disable-extensions',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-default-apps',
+      '--mute-audio',
+      '--window-size=1280,720'
     ],
     ignoreHTTPSErrors: true,
     protocolTimeout: 60000,
