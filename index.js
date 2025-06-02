@@ -81,9 +81,7 @@ const DEMO_SELECTION_TIMEOUT = 30000; // 30 seconds timeout for demo selection
 const DEMO_PROMPT_DELAY = 20000; // 20 seconds delay before sending demo prompt
 const HELP_MESSAGE_TIMEOUT = 30000; // 30 seconds timeout for help message
 
-// Updated Puppeteer configuration for your Docker setup in index.js
 
-const { Client, LocalAuth } = require('whatsapp-web.js');
 
 // Docker-optimized Chrome configuration
 const client = new Client({
