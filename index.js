@@ -81,7 +81,7 @@ const DEMO_SELECTION_TIMEOUT = 30000; // 30 seconds timeout for demo selection
 const DEMO_PROMPT_DELAY = 20000; // 20 seconds delay before sending demo prompt
 const HELP_MESSAGE_TIMEOUT = 30000; // 30 seconds timeout for help message
 
-// Updated Chrome configuration based on Puppeteer troubleshooting guide
+// Railway Chrome configuration
 const client = new Client({
   authStrategy: new LocalAuth({
     clientId: "whatsapp-bot",
@@ -101,7 +101,8 @@ const client = new Client({
       '--disable-component-extensions-with-background-pages',
       '--disable-default-apps',
       '--mute-audio',
-      '--window-size=1280,720'
+      '--window-size=1280,720',
+      '--single-process'
     ],
     ignoreHTTPSErrors: true,
     protocolTimeout: 60000,
