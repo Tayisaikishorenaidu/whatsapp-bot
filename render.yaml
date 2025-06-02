@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: whatsapp-student-ai-bot
+    runtime: node
+    plan: free
+    buildCommand: chmod +x render-build.sh && ./render-build.sh
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+        value: true
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /usr/bin/google-chrome-stable
+      - key: GOOGLE_CHROME_BIN
+        value: /usr/bin/google-chrome-stable

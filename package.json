@@ -8,7 +8,8 @@
     "dev": "nodemon index.js --ignore data/ --ignore .wwebjs_auth/",
     "start:dev": "nodemon --inspect index.js --ignore data/ --ignore .wwebjs_auth/",
     "start:server": "nodemon server.js --ignore data/ --ignore .wwebjs_auth/",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "chmod +x render-build.sh && ./render-build.sh"
   },
   "keywords": [
     "whatsapp",

@@ -81,7 +81,6 @@ const DEMO_SELECTION_TIMEOUT = 30000; // 30 seconds timeout for demo selection
 const DEMO_PROMPT_DELAY = 20000; // 20 seconds delay before sending demo prompt
 const HELP_MESSAGE_TIMEOUT = 30000; // 30 seconds timeout for help message
 
-// Create a new client instance with local authentication
 // Replace the existing Chrome configuration in your index.js
 const client = new Client({
   authStrategy: new LocalAuth({
@@ -90,7 +89,9 @@ const client = new Client({
   puppeteer: {
     headless: true,
     // Render-compatible Chrome path
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || 
+                   process.env.GOOGLE_CHROME_BIN || 
+                   '/usr/bin/google-chrome-stable',
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
