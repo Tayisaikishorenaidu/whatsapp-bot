@@ -83,9 +83,7 @@ const HELP_MESSAGE_TIMEOUT = 30000; // 30 seconds timeout for help message
 
 // Replace your current client configuration in index.js with this:
 
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const path = require('path');
-const fs = require('fs');
+
 
 // Generate unique user data directory to avoid conflicts
 const uniqueDataDir = `/tmp/chrome-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
