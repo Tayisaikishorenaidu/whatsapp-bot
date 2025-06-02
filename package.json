@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
@@ -32,8 +32,9 @@
     "fs-extra": "^11.3.0",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.10",
+    "puppeteer": "^13.7.0",
     "qrcode-terminal": "^0.12.0",
-    "whatsapp-web.js": "^1.23.0",
+    "whatsapp-web.js": "^1.18.4",
     "ws": "^8.18.2",
     "xlsx": "^0.18.5"
   }

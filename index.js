@@ -1,14 +1,15 @@
-const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
-const fs = require('fs').promises;
-const path = require('path');
-const fsExtra = require('fs-extra');
+const { Client, LocalAuth, MessageMedia } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
+const path = require("path");
+const fs = require("fs-extra");
 const dataStore = require("./src/data");
 
 // Timer tracking for message processing
 const messageTimers = new Map(); // Stores timers for each contact
 const MESSAGE_DELAY_MS = 10000; // 10 seconds delay between messages for the same user
-
+global.qrCodeData = null;
+global.qrCodeExpiry = null;
+const QR_CODE_EXPIRY_TIME = 600000; // 60 seconds
 // FOOTER CONFIGURATION
 const FOOTER_MESSAGE = `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🌐 Visit us: https://thestudentai.in\n📸 Follow us on Instagram:@studentaisoftware\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 
@@ -81,242 +82,47 @@ const DEMO_SELECTION_TIMEOUT = 30000; // 30 seconds timeout for demo selection
 const DEMO_PROMPT_DELAY = 20000; // 20 seconds delay before sending demo prompt
 const HELP_MESSAGE_TIMEOUT = 30000; // 30 seconds timeout for help message
 
-// Replace your current client configuration in index.js with this:
-
-
-
-// Generate unique user data directory to avoid conflicts
-const uniqueDataDir = `/tmp/chrome-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-// Ensure directory exists
-if (!fs.existsSync(uniqueDataDir)) {
-    fs.mkdirSync(uniqueDataDir, { recursive: true });
-}
-
-console.log(`🐳 Using unique Chrome data directory: ${uniqueDataDir}`);
-
-// Docker-optimized Chrome configuration with conflict resolution
+// Create a new client instance with local authentication
 const client = new Client({
   authStrategy: new LocalAuth({
-    clientId: "whatsapp-bot-docker",
-    dataPath: "./.wwebjs_auth"
+    clientId: "whatsapp-bot",
   }),
   puppeteer: {
     headless: true,
-    executablePath: '/usr/bin/google-chrome-stable',
+    executablePath:
+      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
     args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--single-process', // Force single process
-      '--disable-gpu',
-      '--disable-extensions',
-      '--disable-default-apps',
-      '--disable-translate',
-      '--disable-background-timer-throttling',
-      '--disable-backgrounding-occluded-windows',
-      '--disable-renderer-backgrounding',
-      '--disable-features=TranslateUI',
-      '--disable-ipc-flooding-protection',
-      '--disable-web-security',
-      '--disable-features=VizDisplayCompositor',
-      '--disable-logging',
-      '--silent',
-      '--disable-crash-reporter',
-      '--disable-in-process-stack-traces',
-      '--disable-hang-monitor',
-      '--disable-histogram-customizer',
-      '--disable-metrics',
-      '--disable-metrics-reporting',
-      
-      // CRITICAL: Use unique data directory to avoid conflicts
-      `--user-data-dir=${uniqueDataDir}`,
-      '--data-path=/tmp/chrome-data-unique',
-      '--disk-cache-dir=/tmp/chrome-cache-unique',
-      
-      // Additional conflict resolution
-      '--disable-background-networking',
-      '--disable-sync',
-      '--disable-default-apps',
-      '--disable-extensions',
-      '--disable-component-extensions-with-background-pages',
-      '--disable-background-timer-throttling',
-      '--disable-backgrounding-occluded-windows',
-      '--disable-renderer-backgrounding',
-      '--disable-field-trial-config',
-      '--disable-ipc-flooding-protection',
-      '--enable-features=NetworkService,NetworkServiceLogging',
-      '--force-fieldtrials=*BackgroundTracing/default/',
-      '--disable-features=VizDisplayCompositor,AudioServiceOutOfProcess',
-      
-      // Process isolation
-      '--no-default-browser-check',
-      '--no-first-run',
-      '--disable-default-apps',
-      '--disable-popup-blocking',
-      '--disable-prompt-on-repost',
-      '--disable-hang-monitor',
-      '--disable-backgrounding-occluded-windows',
-      '--disable-background-timer-throttling',
-      '--disable-renderer-backgrounding',
-      '--disable-device-discovery-notifications',
-      '--disable-web-security',
-      '--disable-features=TranslateUI,BlinkGenPropertyTrees',
-      '--remote-debugging-port=0' // Disable remote debugging to avoid port conflicts
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      "--disable-gpu",
+      "--disable-extensions",
+      "--disable-component-extensions-with-background-pages",
+      "--disable-default-apps",
+      "--mute-audio",
+      "--window-size=1280,720",
     ],
+    executablePath:
+      process.env.PUPPETEER_EXECUTABLE_PATH ||
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     ignoreHTTPSErrors: true,
-    protocolTimeout: 240000, // Increased timeout
-    timeout: 240000,
+    browserWSEndpoint: process.env.BROWSER_WS_ENDPOINT,
+    protocolTimeout: 60000, // Increase protocol timeout to 60 seconds
     defaultViewport: {
       width: 1280,
       height: 720,
     },
-    ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
   },
   restartOnAuthFail: true,
   takeoverOnConflict: true,
-  takeoverTimeoutMs: 180000,
+  takeoverTimeoutMs: 60000,
 });
 
-// Cleanup function for data directory
-const cleanupDataDir = () => {
-  try {
-    if (fs.existsSync(uniqueDataDir)) {
-      fs.rmSync(uniqueDataDir, { recursive: true, force: true });
-      console.log(`🧹 Cleaned up Chrome data directory: ${uniqueDataDir}`);
-    }
-  } catch (error) {
-    console.warn(`⚠️ Could not cleanup data directory: ${error.message}`);
-  }
-};
-
-// Cleanup on process exit
-process.on('exit', cleanupDataDir);
-process.on('SIGINT', cleanupDataDir);
-process.on('SIGTERM', cleanupDataDir);
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  cleanupDataDir();
-});
-
-// Enhanced connection handlers
-client.on('qr', (qr) => {
-  console.log('🔗 QR code generated successfully!');
-  global.currentQR = qr;
-  
-  if (global.broadcastStatus) {
-    global.broadcastStatus({
-      type: 'qr',
-      qr: qr,
-      status: 'QR code ready - Scan with WhatsApp',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-client.on('ready', () => {
-  console.log('✅ WhatsApp Client ready and connected!');
-  global.botStatus = true;
-  
-  if (global.broadcastStatus) {
-    global.broadcastStatus({
-      type: 'status',
-      status: 'connected',
-      message: 'WhatsApp is connected and ready',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-client.on('auth_failure', (msg) => {
-  console.error('❌ Authentication failed:', msg);
-  global.botStatus = false;
-  
-  if (global.broadcastStatus) {
-    global.broadcastStatus({
-      type: 'status',
-      status: 'auth_failed',
-      message: 'Authentication failed: ' + msg,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-client.on('disconnected', (reason) => {
-  console.log('📴 Client disconnected:', reason);
-  global.botStatus = false;
-  
-  if (global.broadcastStatus) {
-    global.broadcastStatus({
-      type: 'status',
-      status: 'disconnected',
-      message: 'Disconnected: ' + reason,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// Robust initialization with proper error handling
-const initializeClientRobust = async () => {
-  let attempts = 0;
-  const maxAttempts = 3;
-  
-  while (attempts < maxAttempts) {
-    try {
-      attempts++;
-      console.log(`🚀 Initializing WhatsApp client (attempt ${attempts}/${maxAttempts})`);
-      
-      // Clean up any existing Chrome processes
-      try {
-        const { exec } = require('child_process');
-        exec('pkill -f chrome', () => {
-          console.log('🧹 Cleaned up any existing Chrome processes');
-        });
-      } catch (e) {
-        // Ignore cleanup errors
-      }
-      
-      // Wait a bit before initializing
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
-      await client.initialize();
-      console.log('✅ WhatsApp client initialized successfully!');
-      break;
-      
-    } catch (error) {
-      console.error(`❌ Initialization attempt ${attempts} failed:`, error.message);
-      
-      // Cleanup on failed attempt
-      cleanupDataDir();
-      
-      if (attempts === maxAttempts) {
-        console.error('❌ All initialization attempts failed');
-        console.log('🔄 Will retry full initialization in 2 minutes...');
-        
-        setTimeout(() => {
-          console.log('🔄 Restarting full initialization process...');
-          initializeClientRobust();
-        }, 120000);
-        
-        return;
-      }
-      
-      // Progressive delay between attempts
-      const delay = 60000 * attempts; // 1 min, 2 min, 3 min
-      console.log(`⏳ Waiting ${delay/1000}s before next attempt...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-};
-
-// Start the initialization
-initializeClientRobust();
-
-module.exports = client;
-
+// Make client available globally for API endpoints
+global.whatsappClient = client;
 
 // Add error handler for browser errors
 client.pupBrowser?.on("disconnected", () => {
@@ -331,91 +137,72 @@ client.pupBrowser?.on("disconnected", () => {
   }, 5000);
 });
 
-// Add this to your main file where you handle QR code generation
-
 // Event: QR Code generation
 client.on("qr", (qr) => {
-  console.log("🔗 QR code generated!");
-  console.log("📱 Scan this QR code with WhatsApp:");
-  
-  // Generate QR code in terminal (for logs)
+  console.log("🔗 Scan the QR code below to connect:");
   qrcode.generate(qr, { small: true });
-  
-  // Also store QR for web dashboard
-  global.currentQR = qr;
-  
-  // Send QR code to dashboard via WebSocket if available
-  if (global.broadcastStatus) {
-    try {
-      global.broadcastStatus({
-        type: 'qr',
-        qr: qr,
-        status: 'QR code ready - Scan with WhatsApp',
-        timestamp: new Date().toISOString()
-      });
-      console.log('✅ QR code sent to dashboard');
-    } catch (error) {
-      console.error('❌ Error sending QR code to dashboard:', error);
-    }
-  }
-  
-  console.log("🌐 QR code also available at your dashboard URL");
+  console.log("📱 Open WhatsApp on your phone and scan this QR code");
 });
-
-// Make currentQR available globally
-global.currentQR = null;
 
 // Event: Client is ready
 client.on("ready", () => {
-  console.log("✅ Client is ready!");
+  console.log("✅ WhatsApp bot is ready and connected!");
+  console.log("🤖 Bot is now ready to respond to messages with smart replies");
   global.botStatus = true;
-  
-  // Update dashboard with connection status
-  if (global.broadcastStatus) {
-    global.broadcastStatus({
-      type: 'status',
-      status: 'connected',
-      message: 'WhatsApp is connected and ready',
-      timestamp: new Date().toISOString()
-    });
-  }
 });
 
 // Event: Authentication successful
-client.on("authenticated", () => {
-  console.log("🔐 Authentication successful!");
-});
-
-// Event: Authentication failed
-client.on("auth_failure", (msg) => {
-  console.error("❌ Authentication failed:", msg);
-  global.botStatus = false;
+client.on("qr", (qr) => {
+  console.log("🔗 Scan the QR code below to connect:");
+  qrcode.generate(qr, { small: true });
+  console.log("📱 Open WhatsApp on your phone and scan this QR code");
   
-  // Update dashboard with auth failure
-  if (global.broadcastStatus) {
-    global.broadcastStatus({
-      type: 'status',
-      status: 'auth_failed',
-      message: 'Authentication failed: ' + msg,
-      timestamp: new Date().toISOString()
-    });
-  }
+  // Store QR code for dashboard
+  global.qrCodeData = qr;
+  global.qrCodeExpiry = Date.now() + QR_CODE_EXPIRY_TIME;
+  
+  console.log("📱 QR Code is now available in the web dashboard at http://localhost:3002");
+  
+  // Clear QR code after expiry
+  setTimeout(() => {
+    console.log("⏰ QR Code expired");
+    global.qrCodeData = null;
+    global.qrCodeExpiry = null;
+  }, QR_CODE_EXPIRY_TIME);
 });
 
-// Event: Client disconnected
+// ============= UPDATE THE READY EVENT HANDLER =============
+// Update your existing client.on("ready", ...) to include QR cleanup:
+client.on("ready", () => {
+  console.log("✅ WhatsApp bot is ready and connected!");
+  console.log("🤖 Bot is now ready to respond to messages with smart replies");
+  global.botStatus = true;
+  
+  // Clear QR code when connected
+  global.qrCodeData = null;
+  global.qrCodeExpiry = null;
+});
+
+// ============= UPDATE THE DISCONNECTED EVENT HANDLER =============
+// Update your existing client.on("disconnected", ...) to handle QR regeneration:
 client.on("disconnected", (reason) => {
   console.log("📴 Client was disconnected:", reason);
   global.botStatus = false;
   
-  // Update dashboard with disconnection status
-  if (global.broadcastStatus) {
-    global.broadcastStatus({
-      type: 'status',
-      status: 'disconnected',
-      message: 'Disconnected: ' + reason,
-      timestamp: new Date().toISOString()
-    });
-  }
+  // Clear QR code data when disconnected
+  global.qrCodeData = null;
+  global.qrCodeExpiry = null;
+});
+
+// ============= UPDATE THE AUTH_FAILURE EVENT HANDLER =============
+// Update your existing client.on("auth_failure", ...) to handle QR regeneration:
+client.on("auth_failure", (msg) => {
+  console.error("❌ Authentication failed:", msg);
+  global.botStatus = false;
+  
+  // Clear QR code data when auth fails
+  global.qrCodeData = null;
+  global.qrCodeExpiry = null;
 });
 
 // Keywords that will bypass the delay
@@ -1117,12 +904,6 @@ client.on("message", async (message) => {
     const chat = await message.getChat();
     const contactId = contact.id._serialized;
     const contactName = contact.name || contact.pushname || contact.number;
-    
-    // Skip if contact is saved in phone's contacts
-    if (contact.isMyContact) {
-      console.log(`ℹ️  Skipping message from saved contact: ${contactName}`);
-      return;
-    }
 
     // Skip group chats
     if (chat.isGroup) {
@@ -1320,139 +1101,5 @@ console.log("🚀 Starting WhatsApp bot and web dashboard...");
 // Setup client error handlers
 errorHandler.setupClientHandlers(client);
 
-// Set initial status
-global.botStatus = false;
-
-// Function to cleanup session files
-async function cleanupSessionFiles() {
-    const sessionDir = path.join(__dirname, '.wwebjs_auth', 'session-whatsapp-bot');
-    console.log(`Cleaning up session files in ${sessionDir}`);
-    
-    try {
-        // Check if directory exists
-        try {
-            await fs.access(sessionDir);
-        } catch (err) {
-            console.log('Session directory does not exist, nothing to clean up');
-            return;
-        }
-        
-        // List all files in the session directory
-        const files = await fs.readdir(sessionDir);
-        
-        // Close any open file handles
-        for (const file of files) {
-            const filePath = path.join(sessionDir, file);
-            try {
-                // Try to close any open file handles
-                const fd = await fs.open(filePath, 'r+');
-                await fd.close();
-                console.log(`Closed file handle for ${file}`);
-            } catch (err) {
-                console.warn(`Could not close file ${file}:`, err.message);
-            }
-            
-            // Delete the file with retry logic
-            let retries = 3;
-            while (retries > 0) {
-                try {
-                    await fs.unlink(filePath);
-                    console.log(`Deleted ${file}`);
-                    break;
-                } catch (err) {
-                    retries--;
-                    if (retries === 0) {
-                        console.error(`Failed to delete ${file} after multiple attempts:`, err.message);
-                        // Try force removal as last resort
-                        try {
-                            await fsExtra.remove(filePath);
-                            console.log(`Forcefully removed ${file}`);
-                        } catch (forceErr) {
-                            console.error(`Could not force remove ${file}:`, forceErr.message);
-                        }
-                    } else {
-                        console.log(`Retrying delete for ${file}... (${retries} attempts left)`);
-                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-                    }
-                }
-            }
-        }
-        
-        // Remove the directory itself
-        try {
-            await fs.rmdir(sessionDir);
-            console.log('Removed session directory');
-        } catch (err) {
-            console.warn('Could not remove session directory:', err.message);
-        }
-    } catch (error) {
-        console.error('Error during session cleanup:', error);
-    }
-}
-
-// Handle application shutdown
-async function handleShutdown() {
-    console.log('\nShutting down gracefully...');
-    
-    try {
-        // Close WhatsApp client if it exists
-        if (client) {
-            try {
-                console.log('Logging out WhatsApp client...');
-                await client.logout();
-                console.log('WhatsApp client logged out');
-            } catch (err) {
-                console.error('Error during WhatsApp client logout:', err);
-            }
-        }
-        
-        // Cleanup session files
-        await cleanupSessionFiles();
-        
-        console.log('Cleanup complete. Exiting...');
-        process.exit(0);
-    } catch (error) {
-        console.error('Error during shutdown:', error);
-        process.exit(1);
-    }
-}
-
-// Setup shutdown handlers
-process.on('SIGINT', handleShutdown);
-process.on('SIGTERM', handleShutdown);
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
-    handleShutdown().catch(err => {
-        console.error('Error during shutdown after uncaught exception:', err);
-        process.exit(1);
-    });
-});
-
 // Initialize WhatsApp client
-console.log('Initializing WhatsApp client...');
-client.initialize().catch(async (error) => {
-    console.error('Error initializing WhatsApp client:', error);
-    
-    // If initialization fails, try to clean up and restart
-    if (error.message.includes('EBUSY') || error.message.includes('resource busy or locked')) {
-        console.log('Detected locked files, attempting cleanup...');
-        await cleanupSessionFiles();
-        console.log('Cleanup complete. Please restart the application.');
-    }
-    
-    // Update status on error
-    if (global.broadcastStatus) {
-        global.broadcastStatus({
-            type: 'status',
-            status: 'error',
-            message: 'Failed to initialize WhatsApp client: ' + error.message,
-            timestamp: new Date().toISOString()
-        });
-    }
-    
-    // Auto-restart after 5 seconds
-    setTimeout(() => {
-        console.log('Attempting to restart client...');
-        client.initialize().catch(console.error);
-    }, 5000);
-});
+client.initialize();
