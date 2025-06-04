@@ -17,9 +17,9 @@ class MessageHandler {
             DEMO_PROMPT_DELAY: 20000,
             MESSAGE_DELAY: 2000,
 
-            FOOTER_MESSAGE: `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🌐 Visit us: https://thestudentai.in\n📸 Follow us on Instagram:@studentaisoftware\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+            FOOTER_MESSAGE: `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━\n🌐 Visit us: https://thestudentai.in\n📸 Follow us on Instagram:@studentaisoftware\n━━━━━━━━━━━━━━━━━━━━━━━━━`,
 
-            SPECIAL_FOOTER: `\n\n**📞 Need Help? Contact the Student AI Team!**\nFor any questions or information about our features, plans, or support, feel free to reach out to our team.\n📧 Email: studentaisoftware@gmail.com\n📱 WhatsApp: +91 824775806 +91 9242107942\n🌐 Website: www.thestudentai.in\n📸 Instagram: @studentaisoftware\nWe're here to help you learn smarter and stress-free! 😊`,
+            SPECIAL_FOOTER: `\n\n📞 Need Help? Contact the Student AI Team!\nFor any questions or information about our features, plans, or support, feel free to reach out to our team.\n📧 Email: studentaisoftware@gmail.com\n📱 WhatsApp: +91 824775806 +91 9242107942\n🌐 Website: www.thestudentai.in\n📸 Instagram: @studentaisoftware\nWe're here to help you learn smarter and stress-free! 😊`,
 
             TRIGGER_PHRASES: [
                 'hello! can i get more info on this?',
@@ -300,7 +300,7 @@ class MessageHandler {
             
             const welcomeMessage =
                 `Welcome to Student AI – India's First AI-Powered E-Learning Platform! 🚀\n\n` +
-                `Which Language you speak - Hindi or English?\n\n` +
+                `Which Language do you speak - Hindi or English?\n\n` +
                 `• For English : Type "1" or "English"\n` +
                 `• For Hindi : Type "2" or "Hindi" \n\n` +
                 `Or simply type "English" or "Hindi"`;
