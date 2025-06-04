@@ -402,19 +402,21 @@ class MessageHandler {
             let videoFileName = '';
     
             if (language === 'en') {
-                description = `FREE FOR STUDENTS | UNLIMITED AI | LIFETIME
+                description = `FREE FOR STUDENTS WITH UNLIMITED AI 
     
-    Visit: https://thestudentai.in/ from your mobile, 
-    Click on FREE PLAN,
-    Sign in with GMAIL
+    ✅Visit: https://thestudentai.in/
+    ✅From your mobile 
+    ✅Click on FREE PLAN,
+    ✅Sign in with GMAIL
     
-    Hi! Our Student AI helps 4th-12th class students with:
+    Our Student AI helps 4th-12th class students with:
     
     ✅ Daily homework assistance
     ✅ Concept clarifications  
     ✅ Covers all school subjects
     
     Our team is ready to help you: SOWMYA - 8247765806
+    
     Thanks, Student AI Team`;
     
                 videoFileName = 'English Version _ Intro.mp4';
@@ -422,9 +424,10 @@ class MessageHandler {
             } else {
                 description = `छात्रों के लिए मुफ्त | अनलिमिटेड AI | लाइफटाइम
     
-    Visit: https://thestudentai.in/ अपने मोबाइल से, 
-    FREE PLAN पर क्लिक करें,
-    GMAIL से साइन इन करें
+    ✅Visit: https://thestudentai.in/
+    ✅अपने मोबाइल से, 
+    ✅FREE PLAN पर क्लिक करें,
+    ✅GMAIL से साइन इन करें
     
     नमस्ते! हमारा Student AI 4वीं-12वीं कक्षा के छात्रों की मदद करता है:
     
@@ -433,7 +436,8 @@ class MessageHandler {
     ✅ सभी स्कूली विषयों को कवर करता है
     
     हमारी टीम आपकी मदद के लिए तैयार है: SOWMYA - 8247765806
-    धन्यवाद, Student AI Team`;
+    
+    Thanks, Student AI Team`;
     
                 videoFileName = 'First Day_Followup_Riya_Hindi Version.mp4';
                 console.log(`🔍 [DEBUG] Selected Hindi video: ${videoFileName}`);
