@@ -1,7 +1,5 @@
-node_modules
-.wwebjs_auth/
-.wwebjs_cache/
-.env
-/data
-/data/logs
-/wwebjs_auth
+/auth_info_baileys/
+/data/
+/logs/
+/node_modules
+

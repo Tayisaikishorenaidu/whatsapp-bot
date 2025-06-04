@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Chat with <%= contact?.name || 'Unknown' %> - <%= config.name %>
+    </title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --whatsapp-green: #25d366;
+        --whatsapp-dark: #128c7e;
+        --whatsapp-light: #dcf8c6;
+        --whatsapp-received: #ffffff;
+        --whatsapp-sent: #dcf8c6;
+      }
+
+      body {
+        background-color: #e5ddd5;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .chat-header {
+        background: linear-gradient(
+          135deg,
+          var(--whatsapp-green),
+          var(--whatsapp-dark)
+        );
+        color: white;
+        padding: 15px 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .chat-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 140px);
+        background: #e5ddd5;
+      }
+
+      .messages-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="0.5" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23pattern)"/></svg>');
+      }
+
+      .message {
+        display: flex;
+        margin-bottom: 15px;
+        max-width: 70%;
+        animation: fadeInUp 0.3s ease;
+      }
+
+      .message.sent {
+        margin-left: auto;
+        flex-direction: row-reverse;
+      }
+
+      .message.received {
+        margin-right: auto;
+      }
+
+      .message-bubble {
+        padding: 12px 16px;
+        border-radius: 18px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        position: relative;
+        word-wrap: break-word;
+        max-width: 100%;
+      }
+
+      .message.sent .message-bubble {
+        background-color: var(--whatsapp-sent);
+        border-bottom-right-radius: 4px;
+      }
+
+      .message.received .message-bubble {
+        background-color: var(--whatsapp-received);
+        border-bottom-left-radius: 4px;
+      }
+
+      .message-content {
+        margin-bottom: 5px;
+        line-height: 1.4;
+      }
+
+      .message-meta {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 5px;
+        font-size: 0.75rem;
+        color: #667781;
+        margin-top: 5px;
+      }
+
+      .message.received .message-meta {
+        justify-content: flex-start;
+      }
+
+      .message-time {
+        white-space: nowrap;
+      }
+
+      .message-status {
+        display: flex;
+        align-items: center;
+      }
+
+      .message-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        margin: 0 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        align-self: flex-end;
+      }
+
+      .message.sent .message-avatar {
+        background: linear-gradient(
+          135deg,
+          var(--whatsapp-green),
+          var(--whatsapp-dark)
+        );
+        color: white;
+      }
+
+      .message.received .message-avatar {
+        background: linear-gradient(135deg, #667781, #4a5a66);
+        color: white;
+      }
+
+      .media-message {
+        margin-bottom: 8px;
+      }
+
+      .media-message img,
+      .media-message video {
+        max-width: 250px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .media-message audio {
+        width: 100%;
+      }
+
+      .language-badge {
+        background: rgba(255, 255, 255, 0.2);
+        color: #667781;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 0.65rem;
+        margin-left: 5px;
+      }
+
+      .message.sent .language-badge {
+        background: rgba(0, 0, 0, 0.1);
+      }
+
+      .compose-area {
+        background: white;
+        padding: 15px 20px;
+        border-top: 1px solid #e0e0e0;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .input-group {
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-control {
+        border: none;
+        padding: 12px 20px;
+        font-size: 16px;
+      }
+
+      .form-control:focus {
+        box-shadow: none;
+        border-color: transparent;
+      }
+
+      .btn-send {
+        background-color: var(--whatsapp-green);
+        border: none;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 0 25px 25px 0;
+      }
+
+      .btn-send:hover {
+        background-color: var(--whatsapp-dark);
+        color: white;
+      }
+
+      .btn-send:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      .contact-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .contact-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+      }
+
+      .contact-details h6 {
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .contact-details small {
+        opacity: 0.8;
+      }
+
+      .chat-actions {
+        display: flex;
+        gap: 10px;
+        margin-left: auto;
+      }
+
+      .empty-chat {
+        text-align: center;
+        padding: 60px 20px;
+        color: #667781;
+      }
+
+      .empty-chat i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #667781;
+        font-style: italic;
+        padding: 0 20px;
+        margin-bottom: 10px;
+      }
+
+      .typing-dots {
+        display: flex;
+        gap: 3px;
+      }
+
+      .typing-dot {
+        width: 6px;
+        height: 6px;
+        background-color: #667781;
+        border-radius: 50%;
+        animation: typing 1.4s infinite;
+      }
+
+      .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes typing {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.5;
+        }
+        30% {
+          transform: translateY(-10px);
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .message {
+          max-width: 85%;
+        }
+
+        .messages-container {
+          padding: 15px;
+        }
+
+        .chat-header {
+          padding: 12px 15px;
+        }
+
+        .compose-area {
+          padding: 12px 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Chat Header -->
+    <div class="chat-header">
+      <div class="contact-info">
+        <a href="/" class="text-white me-3">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="contact-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="contact-details">
+          <h6><%= contact?.name || 'Unknown Contact' %></h6>
+          <small>
+            <% if (contact?.phone) { %> +<%= contact.phone %> <% } %> <% if
+            (contact?.language) { %> • <%= contact.language === 'en' ? 'English'
+            : contact.language === 'hi' ? 'Hindi' : contact.language %> <% } %>
+            <% if (contact?.lastMessage) { %> • Last seen <%=
+            moment(contact.lastMessage).fromNow() %> <% } %>
+          </small>
+        </div>
+      </div>
+      <div class="chat-actions">
+        <button class="btn btn-sm btn-outline-light" onclick="exportChat()">
+          <i class="fas fa-download"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-light" onclick="refreshChat()">
+          <i class="fas fa-refresh"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+      <!-- Messages Container -->
+      <div class="messages-container" id="messagesContainer">
+        <% if (messages.length === 0) { %>
+        <div class="empty-chat">
+          <i class="fas fa-comments"></i>
+          <h5>No messages yet</h5>
+          <p>Start a conversation by sending a message below.</p>
+        </div>
+        <% } else { %> <% messages.forEach(function(message) { %>
+        <div class="message <%= message.fromBot ? 'sent' : 'received' %>">
+          <div class="message-avatar">
+            <i class="fas fa-<%= message.fromBot ? 'robot' : 'user' %>"></i>
+          </div>
+          <div class="message-bubble">
+            <% if (message.mediaType && message.mediaType !== 'text') { %>
+            <div class="media-message">
+              <% if (message.mediaType === 'image') { %>
+              <img
+                src="/media/placeholder-image.jpg"
+                alt="Image"
+                onclick="openMediaModal(this.src)"
+              />
+              <% } else if (message.mediaType === 'video') { %>
+              <video controls onclick="openMediaModal(this.src)">
+                <source src="/media/placeholder-video.mp4" type="video/mp4" />
+              </video>
+              <% } else if (message.mediaType === 'audio') { %>
+              <audio controls>
+                <source src="/media/placeholder-audio.mp3" type="audio/mpeg" />
+              </audio>
+              <% } else { %>
+              <div class="d-flex align-items-center">
+                <i class="fas fa-file me-2"></i>
+                <span>Document</span>
+              </div>
+              <% } %>
+            </div>
+            <% } %>
+
+            <div class="message-content">
+              <%= message.text || '[Media Message]' %> <% if (message.language)
+              { %>
+              <span class="language-badge"><%= message.language %></span>
+              <% } %>
+            </div>
+
+            <div class="message-meta">
+              <span class="message-time">
+                <%= moment(message.timestamp).format('HH:mm') %>
+              </span>
+              <% if (message.fromBot) { %>
+              <div class="message-status">
+                <i class="fas fa-check-double text-primary"></i>
+              </div>
+              <% } %> <% if (message.responseTime) { %>
+              <span class="text-muted ms-1" title="Response time">
+                (<%= (message.responseTime / 1000).toFixed(1) %>s)
+              </span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <% }); %> <% } %>
+      </div>
+
+      <!-- Typing Indicator (hidden by default) -->
+      <div class="typing-indicator" id="typingIndicator" style="display: none">
+        Bot is typing
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+
+      <!-- Compose Area -->
+      <div class="compose-area">
+        <form id="messageForm" class="input-group">
+          <input
+            type="text"
+            class="form-control"
+            id="messageInput"
+            placeholder="Type a message..."
+            maxlength="1000"
+            autocomplete="off"
+          />
+          <button type="submit" class="btn btn-send" id="sendButton">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </form>
+
+        <!-- Quick Actions -->
+        <div class="mt-2 d-flex gap-2 flex-wrap">
+          <button
+            class="btn btn-sm btn-outline-secondary"
+            onclick="sendQuickMessage('Hello')"
+          >
+            👋 Hello
+          </button>
+          <button
+            class="btn btn-sm btn-outline-secondary"
+            onclick="sendQuickMessage('Thank you')"
+          >
+            🙏 Thank you
+          </button>
+          <button
+            class="btn btn-sm btn-outline-secondary"
+            onclick="sendQuickMessage('Can I get more info on this?')"
+          >
+            ℹ️ More info
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Media Modal -->
+    <div class="modal fade" id="mediaModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark">
+          <div class="modal-header border-0">
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body text-center p-0">
+            <img id="modalImage" class="img-fluid" style="max-height: 80vh" />
+            <video
+              id="modalVideo"
+              class="img-fluid"
+              controls
+              style="max-height: 80vh; display: none"
+            ></video>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      let isTyping = false;
+
+      // Auto-scroll to bottom
+      function scrollToBottom() {
+        const container = document.getElementById("messagesContainer");
+        container.scrollTop = container.scrollHeight;
+      }
+
+      // Initial scroll to bottom
+      setTimeout(scrollToBottom, 100);
+
+      // Message form submission
+      document
+        .getElementById("messageForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const input = document.getElementById("messageInput");
+          const sendButton = document.getElementById("sendButton");
+          const message = input.value.trim();
+
+          if (!message) return;
+
+          // Disable form
+          input.disabled = true;
+          sendButton.disabled = true;
+          sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+          try {
+            const response = await fetch("/api/send-message", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                contactId: "<%= contactId %>",
+                message: message,
+              }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              // Add message to UI immediately
+              addMessageToUI(message, true);
+              input.value = "";
+
+              // Show typing indicator
+              showTypingIndicator();
+
+              // Hide typing indicator after a delay
+              setTimeout(hideTypingIndicator, 2000);
+
+              // Refresh after a short delay to get bot response
+              setTimeout(() => {
+                location.reload();
+              }, 3000);
+            } else {
+              alert(
+                "Failed to send message: " + (result.error || "Unknown error")
+              );
+            }
+          } catch (error) {
+            alert("Error sending message: " + error.message);
+          } finally {
+            // Re-enable form
+            input.disabled = false;
+            sendButton.disabled = false;
+            sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            input.focus();
+          }
+        });
+
+      // Quick message function
+      async function sendQuickMessage(message) {
+        document.getElementById("messageInput").value = message;
+        document
+          .getElementById("messageForm")
+          .dispatchEvent(new Event("submit"));
+      }
+
+      // Add message to UI
+      function addMessageToUI(text, isSent) {
+        const container = document.getElementById("messagesContainer");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${isSent ? "sent" : "received"}`;
+
+        messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-${isSent ? "robot" : "user"}"></i>
+                </div>
+                <div class="message-bubble">
+                    <div class="message-content">${text}</div>
+                    <div class="message-meta">
+                        <span class="message-time">${new Date().toLocaleTimeString(
+                          [],
+                          { hour: "2-digit", minute: "2-digit" }
+                        )}</span>
+                        ${
+                          isSent
+                            ? '<div class="message-status"><i class="fas fa-clock text-muted"></i></div>'
+                            : ""
+                        }
+                    </div>
+                </div>
+            `;
+
+        container.appendChild(messageDiv);
+        scrollToBottom();
+      }
+
+      // Typing indicator functions
+      function showTypingIndicator() {
+        document.getElementById("typingIndicator").style.display = "flex";
+        scrollToBottom();
+        isTyping = true;
+      }
+
+      function hideTypingIndicator() {
+        document.getElementById("typingIndicator").style.display = "none";
+        isTyping = false;
+      }
+
+      // Media modal functions
+      function openMediaModal(src) {
+        const modal = new bootstrap.Modal(
+          document.getElementById("mediaModal")
+        );
+        const modalImage = document.getElementById("modalImage");
+        const modalVideo = document.getElementById("modalVideo");
+
+        if (
+          src.includes(".mp4") ||
+          src.includes(".avi") ||
+          src.includes(".mov")
+        ) {
+          modalImage.style.display = "none";
+          modalVideo.style.display = "block";
+          modalVideo.src = src;
+        } else {
+          modalVideo.style.display = "none";
+          modalImage.style.display = "block";
+          modalImage.src = src;
+        }
+
+        modal.show();
+      }
+
+      // Chat actions
+      function refreshChat() {
+        location.reload();
+      }
+
+      async function exportChat() {
+        try {
+          const response = await fetch(`/api/export-chat/<%= contactId %>`);
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `chat_<%= contact?.name || 'unknown' %>_${
+            new Date().toISOString().split("T")[0]
+          }.txt`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        } catch (error) {
+          alert("Failed to export chat: " + error.message);
+        }
+      }
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", function (e) {
+        // Escape to go back to dashboard
+        if (e.key === "Escape") {
+          window.location.href = "/";
+        }
+
+        // Ctrl/Cmd + R to refresh
+        if ((e.ctrlKey || e.metaKey) && e.key === "r") {
+          e.preventDefault();
+          refreshChat();
+        }
+
+        // Focus message input when typing (if not already focused)
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+          const input = document.getElementById("messageInput");
+          if (document.activeElement !== input) {
+            input.focus();
+          }
+        }
+      });
+
+      // Auto-refresh every 30 seconds
+      setInterval(() => {
+        if (!isTyping && document.visibilityState === "visible") {
+          // Only refresh if user isn't actively typing
+          const input = document.getElementById("messageInput");
+          if (document.activeElement !== input || input.value.trim() === "") {
+            location.reload();
+          }
+        }
+      }, 30000);
+
+      // Handle input focus/blur for better UX
+      const messageInput = document.getElementById("messageInput");
+
+      messageInput.addEventListener("focus", function () {
+        // Scroll to bottom when input is focused (mobile keyboard opens)
+        setTimeout(scrollToBottom, 300);
+      });
+
+      messageInput.addEventListener("input", function () {
+        // Auto-resize input if needed (for longer messages)
+        this.style.height = "auto";
+        this.style.height = Math.min(this.scrollHeight, 120) + "px";
+      });
+
+      // Handle paste events
+      messageInput.addEventListener("paste", function (e) {
+        // Handle pasted content (could be text or images)
+        setTimeout(() => {
+          if (this.value.length > 1000) {
+            alert("Message is too long. Please keep it under 1000 characters.");
+            this.value = this.value.substring(0, 1000);
+          }
+        }, 10);
+      });
+
+      // Character count display
+      messageInput.addEventListener("input", function () {
+        const charCount = this.value.length;
+        const maxChars = 1000;
+
+        // Remove existing counter
+        const existingCounter = document.querySelector(".char-counter");
+        if (existingCounter) {
+          existingCounter.remove();
+        }
+
+        // Add counter if approaching limit
+        if (charCount > maxChars * 0.8) {
+          const counter = document.createElement("div");
+          counter.className = "char-counter text-muted small text-end mt-1";
+          counter.textContent = `${charCount}/${maxChars}`;
+          if (charCount > maxChars * 0.95) {
+            counter.className += " text-warning";
+          }
+          if (charCount >= maxChars) {
+            counter.className = counter.className.replace(
+              "text-warning",
+              "text-danger"
+            );
+          }
+          this.parentNode.parentNode.appendChild(counter);
+        }
+      });
+
+      // Handle connection status changes
+      async function checkConnectionStatus() {
+        try {
+          const response = await fetch("/api/status");
+          const status = await response.json();
+
+          if (!status.connected) {
+            // Show disconnection warning
+            const warning = document.createElement("div");
+            warning.className =
+              "alert alert-warning alert-dismissible fade show position-fixed";
+            warning.style.cssText =
+              "top: 70px; left: 50%; transform: translateX(-50%); z-index: 1000; min-width: 300px;";
+            warning.innerHTML = `
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Bot is disconnected. Messages may not be delivered.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+            document.body.appendChild(warning);
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+              if (warning.parentNode) {
+                warning.parentNode.removeChild(warning);
+              }
+            }, 5000);
+          }
+        } catch (error) {
+          console.error("Status check failed:", error);
+        }
+      }
+
+      // Check connection status every 10 seconds
+      setInterval(checkConnectionStatus, 10000);
+
+      // Handle visibility changes
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") {
+          // Refresh when page becomes visible again
+          setTimeout(() => {
+            if (!isTyping) {
+              location.reload();
+            }
+          }, 1000);
+        }
+      });
+
+      // Initialize tooltips for better UX
+      document.addEventListener("DOMContentLoaded", function () {
+        // Enable tooltips
+        const tooltipTriggerList = [].slice.call(
+          document.querySelectorAll("[title]")
+        );
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+      });
+
+      // Handle long press on messages (mobile)
+      let pressTimer;
+
+      document.addEventListener("touchstart", function (e) {
+        if (e.target.closest(".message-bubble")) {
+          pressTimer = setTimeout(() => {
+            // Show message options (copy, reply, etc.)
+            showMessageOptions(e.target.closest(".message"));
+          }, 500);
+        }
+      });
+
+      document.addEventListener("touchend", function () {
+        clearTimeout(pressTimer);
+      });
+
+      function showMessageOptions(messageElement) {
+        // Simple implementation - could be expanded
+        const messageText =
+          messageElement.querySelector(".message-content").textContent;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(messageText).then(() => {
+            // Show copied feedback
+            const feedback = document.createElement("div");
+            feedback.className =
+              "position-fixed bg-dark text-white p-2 rounded";
+            feedback.style.cssText =
+              "top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000;";
+            feedback.textContent = "Message copied!";
+            document.body.appendChild(feedback);
+
+            setTimeout(() => {
+              if (feedback.parentNode) {
+                feedback.parentNode.removeChild(feedback);
+              }
+            }, 2000);
+          });
+        }
+      }
+
+      // Add emoji support (basic)
+      const emojiButton = document.createElement("button");
+      emojiButton.type = "button";
+      emojiButton.className = "btn btn-outline-secondary btn-sm ms-2";
+      emojiButton.innerHTML = "😊";
+      emojiButton.onclick = function () {
+        const emojis = [
+          "😊",
+          "👍",
+          "❤️",
+          "😂",
+          "🙏",
+          "👋",
+          "🔥",
+          "💯",
+          "🎉",
+          "✅",
+        ];
+        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+        const input = document.getElementById("messageInput");
+        input.value += randomEmoji;
+        input.focus();
+      };
+
+      // Add emoji button to quick actions
+      document.querySelector(".mt-2.d-flex").appendChild(emojiButton);
+    </script>
+  </body>
+</html>

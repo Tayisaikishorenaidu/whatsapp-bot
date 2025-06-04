@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - <%= config.name %>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --whatsapp-green: #25D366;
+            --whatsapp-dark: #128C7E;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--whatsapp-green), var(--whatsapp-dark));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .error-container {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            margin: 20px;
+        }
+
+        .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--whatsapp-green), var(--whatsapp-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+
+        .error-message {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .error-description {
+            color: #6c757d;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .btn-home {
+            background-color: var(--whatsapp-green);
+            border-color: var(--whatsapp-green);
+            color: white;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-home:hover {
+            background-color: var(--whatsapp-dark);
+            border-color: var(--whatsapp-dark);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .floating-icons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-icon {
+            position: absolute;
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.1);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-icon:nth-child(1) {
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-icon:nth-child(2) {
+            left: 20%;
+            animation-delay: 1s;
+        }
+
+        .floating-icon:nth-child(3) {
+            left: 30%;
+            animation-delay: 2s;
+        }
+
+        .floating-icon:nth-child(4) {
+            left: 40%;
+            animation-delay: 3s;
+        }
+
+        .floating-icon:nth-child(5) {
+            left: 50%;
+            animation-delay: 4s;
+        }
+
+        .floating-icon:nth-child(6) {
+            left: 60%;
+            animation-delay: 5s;
+        }
+
+        .floating-icon:nth-child(7) {
+            left: 70%;
+            animation-delay: 2s;
+        }
+
+        .floating-icon:nth-child(8) {
+            left: 80%;
+            animation-delay: 3s;
+        }
+
+        .floating-icon:nth-child(9) {
+            left: 90%;
+            animation-delay: 1s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(100vh) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+        }
+
+        .quick-links {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .quick-links a {
+            color: #6c757d;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .quick-links a:hover {
+            color: var(--whatsapp-green);
+        }
+
+        .robot-icon {
+            font-size: 4rem;
+            color: var(--whatsapp-green);
+            margin-bottom: 30px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-20px);
+            }
+
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .error-container {
+                padding: 40px 30px;
+            }
+
+            .error-code {
+                font-size: 6rem;
+            }
+
+            .error-message {
+                font-size: 1.2rem;
+            }
+
+            .quick-links a {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Floating Background Icons -->
+    <div class="floating-icons">
+        <i class="fas fa-robot floating-icon"></i>
+        <i class="fas fa-comments floating-icon"></i>
+        <i class="fab fa-whatsapp floating-icon"></i>
+        <i class="fas fa-chart-line floating-icon"></i>
+        <i class="fas fa-users floating-icon"></i>
+        <i class="fas fa-cog floating-icon"></i>
+        <i class="fas fa-mobile-alt floating-icon"></i>
+        <i class="fas fa-bell floating-icon"></i>
+        <i class="fas fa-heart floating-icon"></i>
+    </div>
+
+    <div class="error-container">
+        <!-- Robot Icon -->
+        <div class="robot-icon">
+            <i class="fas fa-robot"></i>
+        </div>
+
+        <!-- Error Code -->
+        <div class="error-code">404</div>
+
+        <!-- Error Message -->
+        <h2 class="error-message">Oops! Page Not Found</h2>
+
+        <!-- Error Description -->
+        <p class="error-description">
+            The page you're looking for seems to have wandered off into the digital wilderness.
+            Our WhatsApp bot is still here and ready to help though!
+        </p>
+
+        <!-- Action Buttons -->
+        <div class="mb-4">
+            <a href="/" class="btn-home me-3">
+                <i class="fas fa-home me-2"></i>
+                Back to Dashboard
+            </a>
+            <a href="/qr" class="btn btn-outline-secondary" style="border-radius: 25px; padding: 12px 30px;">
+                <i class="fas fa-qrcode me-2"></i>
+                QR Code
+            </a>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="quick-links">
+            <a href="/">
+                <i class="fas fa-tachometer-alt me-1"></i>
+                Dashboard
+            </a>
+            <a href="/analytics">
+                <i class="fas fa-chart-bar me-1"></i>
+                Analytics
+            </a>
+            <a href="/api/status">
+                <i class="fas fa-heartbeat me-1"></i>
+                Status
+            </a>
+        </div>
+
+        <!-- Bot Info -->
+        <div class="mt-4 text-muted small">
+            <div>
+                <%= config.name %> v<%= config.version %>
+            </div>
+            <div class="mt-2">
+                <i class="fas fa-shield-alt me-1"></i>
+                Secure •
+                <i class="fas fa-clock me-1"></i>
+                24/7 Active •
+                <i class="fas fa-globe me-1"></i>
+                Global
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add some interactive elements
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add click effect to robot icon
+            const robotIcon = document.querySelector('.robot-icon');
+            robotIcon.addEventListener('click', function () {
+                this.style.transform = 'scale(1.2) rotate(360deg)';
+                this.style.transition = 'transform 0.5s ease';
+
+                setTimeout(() => {
+                    this.style.transform = '';
+                    this.style.transition = '';
+                }, 500);
+            });
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function (e) {
+                // H for home
+                if (e.key === 'h' || e.key === 'H') {
+                    if (!e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        window.location.href = '/';
+                    }
+                }
+
+                // Q for QR code
+                if (e.key === 'q' || e.key === 'Q') {
+                    if (!e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        window.location.href = '/qr';
+                    }
+                }
+
+                // A for analytics
+                if (e.key === 'a' || e.key === 'A') {
+                    if (!e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        window.location.href = '/analytics';
+                    }
+                }
+
+                // Escape to go back
+                if (e.key === 'Escape') {
+                    window.history.back();
+                }
+            });
+
+            // Add some fun easter eggs
+            let clickCount = 0;
+            const errorCode = document.querySelector('.error-code');
+
+            errorCode.addEventListener('click', function () {
+                clickCount++;
+
+                if (clickCount === 5) {
+                    this.textContent = '🤖';
+                    setTimeout(() => {
+                        this.textContent = '404';
+                        clickCount = 0;
+                    }, 2000);
+                }
+            });
+
+            // Animate error code on load
+            setTimeout(() => {
+                errorCode.style.animation = 'bounce 1s ease';
+            }, 500);
+
+            // Show helpful tip after a few seconds
+            setTimeout(() => {
+                const tip = document.createElement('div');
+                tip.className = 'alert alert-info mt-3';
+                tip.innerHTML = `
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Use keyboard shortcuts - 
+                    <kbd>H</kbd> for Home, <kbd>Q</kbd> for QR Code, <kbd>A</kbd> for Analytics
+                `;
+                document.querySelector('.error-container').appendChild(tip);
+
+                // Fade in the tip
+                tip.style.opacity = '0';
+                tip.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => {
+                    tip.style.opacity = '1';
+                }, 100);
+            }, 3000);
+
+            // Check if bot is connected and show status
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    const statusIndicator = document.createElement('div');
+                    statusIndicator.className = `alert ${data.connected ? 'alert-success' : 'alert-warning'} mt-3`;
+                    statusIndicator.innerHTML = `
+                        <i class="fas fa-${data.connected ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                        Bot Status: ${data.connected ? 'Connected' : 'Disconnected'}
+                        ${data.connected ? '✅' : '⚠️'}
+                    `;
+                    document.querySelector('.error-container').appendChild(statusIndicator);
+                })
+                .catch(error => {
+                    console.log('Could not fetch bot status');
+                });
+        });
+
+        // Add some visual effects
+        function createSparkle() {
+            const sparkle = document.createElement('div');
+            sparkle.innerHTML = '✨';
+            sparkle.style.position = 'absolute';
+            sparkle.style.left = Math.random() * 100 + '%';
+            sparkle.style.top = Math.random() * 100 + '%';
+            sparkle.style.pointerEvents = 'none';
+            sparkle.style.fontSize = Math.random() * 20 + 10 + 'px';
+            sparkle.style.opacity = '0.7';
+            sparkle.style.transition = 'all 2s ease';
+
+            document.body.appendChild(sparkle);
+
+            setTimeout(() => {
+                sparkle.style.transform = 'translateY(-100px)';
+                sparkle.style.opacity = '0';
+            }, 100);
+
+            setTimeout(() => {
+                if (sparkle.parentNode) {
+                    sparkle.parentNode.removeChild(sparkle);
+                }
+            }, 2000);
+        }
+
+        // Create sparkles occasionally
+        setInterval(createSparkle, 3000);
+
+        // Add mouse move effect
+        document.addEventListener('mousemove', function (e) {
+            const container = document.querySelector('.error-container');
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            container.style.transform = `perspective(1000px) rotateX(${y / 50}deg) rotateY(${x / 50}deg)`;
+        });
+
+        document.addEventListener('mouseleave', function () {
+            const container = document.querySelector('.error-container');
+            container.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+        });
+    </script>
+</body>
+
+</html>

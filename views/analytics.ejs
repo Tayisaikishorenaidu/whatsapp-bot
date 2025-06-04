@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= config.name %> - Analytics
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --whatsapp-green: #25D366;
+            --whatsapp-dark: #128C7E;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--whatsapp-green), var(--whatsapp-dark));
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .metric-card {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+        }
+
+        .metric-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-change {
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .metric-up {
+            color: #28a745;
+        }
+
+        .metric-down {
+            color: #dc3545;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            padding: 20px;
+        }
+
+        .chart-large {
+            height: 400px;
+        }
+
+        .progress-metric {
+            margin-bottom: 20px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 10px;
+        }
+
+        .table-analytics {
+            font-size: 0.9rem;
+        }
+
+        .table-analytics th {
+            background-color: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .table-analytics td {
+            border: none;
+            vertical-align: middle;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .tab-content {
+            padding-top: 20px;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: var(--whatsapp-green);
+            color: white;
+            border-color: var(--whatsapp-green);
+        }
+
+        .nav-tabs .nav-link {
+            color: #6c757d;
+            border: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .heatmap-cell {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            display: inline-block;
+            margin: 1px;
+        }
+
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .metric-number {
+                font-size: 1.8rem;
+            }
+
+            .chart-container {
+                height: 250px;
+                padding: 15px;
+            }
+
+            .chart-large {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold" href="/">
+                <i class="fab fa-whatsapp me-2"></i>
+                <%= config.name %>
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="/">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2>
+                            <i class="fas fa-chart-line me-2"></i>
+                            Analytics Dashboard
+                        </h2>
+                        <p class="text-muted mb-0">Comprehensive insights into bot performance and user engagement</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-primary me-2" onclick="exportAnalytics()">
+                            <i class="fas fa-download me-1"></i>
+                            Export Report
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="location.reload()">
+                            <i class="fas fa-refresh me-1"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card metric-card">
+                    <div class="metric-number text-primary">
+                        <%= analytics.totalMessages || 0 %>
+                    </div>
+                    <div class="metric-label">Total Messages</div>
+                    <div class="metric-change metric-up">
+                        <i class="fas fa-arrow-up me-1"></i>
+                        +<%= analytics.todayMessages || 0 %> today
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card metric-card">
+                    <div class="metric-number text-success">
+                        <%= analytics.engagementRate || 0 %>%
+                    </div>
+                    <div class="metric-label">Engagement Rate</div>
+                    <div class="metric-change">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Active users
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card metric-card">
+                    <div class="metric-number text-info">
+                        <%= (analytics.averageResponseTime || 0) / 1000 %>s
+                    </div>
+                    <div class="metric-label">Avg Response Time</div>
+                    <div class="metric-change metric-up">
+                        <i class="fas fa-clock me-1"></i>
+                        Automated
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card metric-card">
+                    <div class="metric-number text-warning">
+                        <%= analytics.conversionRate || 0 %>%
+                    </div>
+                    <div class="metric-label">Conversion Rate</div>
+                    <div class="metric-change">
+                        <i class="fas fa-users me-1"></i>
+                        Language selected
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tabs -->
+        <div class="row">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="analyticsTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab"
+                            data-bs-target="#overview" type="button">
+                            <i class="fas fa-chart-pie me-2"></i>Overview
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages"
+                            type="button">
+                            <i class="fas fa-comments me-2"></i>Messages
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users"
+                            type="button">
+                            <i class="fas fa-users me-2"></i>Users
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance"
+                            type="button">
+                            <i class="fas fa-tachometer-alt me-2"></i>Performance
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="analyticsTabContent">
+                    <!-- Overview Tab -->
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                        <div class="row">
+                            <!-- Message Trends Chart -->
+                            <div class="col-lg-8">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-chart-line me-2"></i>
+                                            Message Trends (Last 7 Days)
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container chart-large">
+                                            <canvas id="messagesTrendChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Language Distribution -->
+                            <div class="col-lg-4">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-language me-2"></i>
+                                            Language Distribution
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container">
+                                            <canvas id="languageChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Journey Funnel -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-funnel-dollar me-2"></i>
+                                            User Journey Funnel
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <% if (analytics.userJourney) { %>
+                                            <% Object.entries(analytics.userJourney).forEach((entry, index)=> { %>
+                                                <div class="progress-metric">
+                                                    <div class="progress-label">
+                                                        <span>
+                                                            <%= entry[0] %>
+                                                        </span>
+                                                        <span class="fw-bold">
+                                                            <%= entry[1] %> users
+                                                        </span>
+                                                    </div>
+                                                    <div class="progress">
+                                                        <div class="progress-bar bg-<%= index === 0 ? 'primary' : index === 1 ? 'success' : index === 2 ? 'info' : index === 3 ? 'warning' : 'danger' %>"
+                                                            style="width: <%= analytics.userJourney['Initial Contact'] ? (entry[1] / analytics.userJourney['Initial Contact'] * 100) : 0 %>%">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <% }); %>
+                                                    <% } else { %>
+                                                        <p class="text-muted text-center">No user journey data available
+                                                        </p>
+                                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Messages Tab -->
+                    <div class="tab-pane fade" id="messages" role="tabpanel">
+                        <div class="row">
+                            <!-- Hourly Activity Heatmap -->
+                            <div class="col-lg-8">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-clock me-2"></i>
+                                            Activity by Hour
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container">
+                                            <canvas id="hourlyActivityChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Media Type Distribution -->
+                            <div class="col-lg-4">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-file-alt me-2"></i>
+                                            Media Types
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <% if (analytics.mediaTypeStats && Object.keys(analytics.mediaTypeStats).length>
+                                            0) { %>
+                                            <% Object.entries(analytics.mediaTypeStats).forEach((entry)=> { %>
+                                                <div class="progress-metric">
+                                                    <div class="progress-label">
+                                                        <span>
+                                                            <%= entry[0] %>
+                                                        </span>
+                                                        <span class="fw-bold">
+                                                            <%= entry[1] %>
+                                                        </span>
+                                                    </div>
+                                                    <div class="progress">
+                                                        <div class="progress-bar bg-info"
+                                                            style="width: <%= Math.max(entry[1] / Math.max(...Object.values(analytics.mediaTypeStats)) * 100, 5) %>%">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <% }); %>
+                                                    <% } else { %>
+                                                        <p class="text-muted text-center">No media data available</p>
+                                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Popular Keywords -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-tags me-2"></i>
+                                            Popular Keywords
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <% if (analytics.popularKeywords && analytics.popularKeywords.length> 0) { %>
+                                            <div class="row">
+                                                <% analytics.popularKeywords.forEach((keyword, index)=> { %>
+                                                    <div class="col-md-6 col-lg-4 mb-3">
+                                                        <div
+                                                            class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                                                            <span class="fw-bold">#<%= index + 1 %></span>
+                                                            <span>
+                                                                <%= keyword.word %>
+                                                            </span>
+                                                            <span class="badge bg-primary">
+                                                                <%= keyword.count %>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <% }); %>
+                                            </div>
+                                            <% } else { %>
+                                                <p class="text-muted text-center">No keyword data available</p>
+                                                <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Users Tab -->
+                    <div class="tab-pane fade" id="users" role="tabpanel">
+                        <div class="row">
+                            <!-- Top Active Users -->
+                            <div class="col-lg-6">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-users me-2"></i>
+                                            Most Active Users
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <% if (analytics.topActiveContacts && analytics.topActiveContacts.length> 0) {
+                                            %>
+                                            <% analytics.topActiveContacts.forEach((contact, index)=> { %>
+                                                <div class="activity-item">
+                                                    <div
+                                                        class="activity-icon bg-<%= index === 0 ? 'warning' : index === 1 ? 'secondary' : index === 2 ? 'dark' : 'light' %> text-<%= index < 3 ? 'white' : 'dark' %>">
+                                                        #<%= index + 1 %>
+                                                    </div>
+                                                    <div class="activity-content">
+                                                        <div class="fw-bold">
+                                                            <%= contact.name %>
+                                                        </div>
+                                                        <div class="text-muted small">
+                                                            <%= contact.messageCount %> messages
+                                                                <% if (contact.lastMessage) { %>
+                                                                    • Last active <%=
+                                                                        moment(contact.lastMessage).fromNow() %>
+                                                                        <% } %>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <% }); %>
+                                                    <% } else { %>
+                                                        <p class="text-muted text-center">No user activity data
+                                                            available</p>
+                                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Engagement Metrics -->
+                            <div class="col-lg-6">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-chart-bar me-2"></i>
+                                            Engagement Metrics
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="progress-metric">
+                                            <div class="progress-label">
+                                                <span>Total Contacts</span>
+                                                <span class="fw-bold">
+                                                    <%= analytics.totalContacts || 0 %>
+                                                </span>
+                                            </div>
+                                            <div class="progress">
+                                                <div class="progress-bar bg-primary" style="width: 100%"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="progress-metric">
+                                            <div class="progress-label">
+                                                <span>Active Users</span>
+                                                <span class="fw-bold">
+                                                    <%= Math.round((analytics.totalContacts || 0) *
+                                                        (analytics.engagementRate || 0) / 100) %>
+                                                </span>
+                                            </div>
+                                            <div class="progress">
+                                                <div class="progress-bar bg-success"
+                                                    style="width: <%= analytics.engagementRate || 0 %>%"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="progress-metric">
+                                            <div class="progress-label">
+                                                <span>Converted Users</span>
+                                                <span class="fw-bold">
+                                                    <%= Math.round((analytics.totalContacts || 0) *
+                                                        (analytics.conversionRate || 0) / 100) %>
+                                                </span>
+                                            </div>
+                                            <div class="progress">
+                                                <div class="progress-bar bg-warning"
+                                                    style="width: <%= analytics.conversionRate || 0 %>%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Tab -->
+                    <div class="tab-pane fade" id="performance" role="tabpanel">
+                        <div class="row">
+                            <!-- Response Time Distribution -->
+                            <div class="col-lg-8">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-stopwatch me-2"></i>
+                                            Response Time Distribution
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container">
+                                            <canvas id="responseTimeChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Stats -->
+                            <div class="col-lg-4">
+                                <div class="card">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-server me-2"></i>
+                                            System Performance
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="progress-metric">
+                                            <div class="progress-label">
+                                                <span>Bot Uptime</span>
+                                                <span class="fw-bold" id="uptime">--</span>
+                                            </div>
+                                            <div class="progress">
+                                                <div class="progress-bar bg-success" style="width: 95%"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="progress-metric">
+                                            <div class="progress-label">
+                                                <span>Success Rate</span>
+                                                <span class="fw-bold">98.5%</span>
+                                            </div>
+                                            <div class="progress">
+                                                <div class="progress-bar bg-success" style="width: 98.5%"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="progress-metric">
+                                            <div class="progress-label">
+                                                <span>Error Rate</span>
+                                                <span class="fw-bold">1.5%</span>
+                                            </div>
+                                            <div class="progress">
+                                                <div class="progress-bar bg-danger" style="width: 1.5%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Chart.js default settings
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = '#6c757d';
+
+        // Color scheme
+        const colors = {
+            primary: '#0d6efd',
+            success: '#198754',
+            warning: '#ffc107',
+            danger: '#dc3545',
+            info: '#0dcaf0',
+            whatsapp: '#25D366'
+        };
+
+        // Messages Trend Chart
+        const messagesTrendData = {
+            labels: [<% if(analytics.messagesByDay) { %>
+                <% analytics.messagesByDay.forEach((day, index) => { %>
+                '<%= day.day %>' <%= index < analytics.messagesByDay.length - 1 ? ',' : '' %>
+                <% }); %>
+            <% } %>],
+        datasets: [{
+            label: 'Messages',
+            data: [<% if(analytics.messagesByDay) { %>
+                    <% analytics.messagesByDay.forEach((day, index) => { %>
+                        <%= day.count %><%= index < analytics.messagesByDay.length - 1 ? ',' : '' %>
+                    <% }); %>
+                <% } %>],
+            borderColor: colors.whatsapp,
+                backgroundColor: colors.whatsapp + '20',
+                    tension: 0.4,
+                        fill: true
+            }]
+        };
+
+        new Chart(document.getElementById('messagesTrendChart'), {
+            type: 'line',
+            data: messagesTrendData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f1f3f4'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Language Distribution Chart
+        const languageData = {
+            labels: [<% if(analytics.languageStats) { %>
+                <% Object.keys(analytics.languageStats).forEach((lang, index) => { %>
+                '<%= lang === "en" ? "English" : lang === "hi" ? "Hindi" : lang %>' <%= index < Object.keys(analytics.languageStats).length - 1 ? ',' : '' %>
+                <% }); %>
+            <% } %>],
+        datasets: [{
+            data: [<% if(analytics.languageStats) { %>
+                    <% Object.values(analytics.languageStats).forEach((count, index) => { %>
+                        <%= count %><%= index < Object.values(analytics.languageStats).length - 1 ? ',' : '' %>
+                    <% }); %>
+                <% } %>],
+            backgroundColor: [colors.primary, colors.success, colors.warning, colors.info, colors.danger]
+            }]
+        };
+
+        new Chart(document.getElementById('languageChart'), {
+            type: 'doughnut',
+            data: languageData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Hourly Activity Chart
+        const hourlyData = {
+            labels: [<% if(analytics.messagesByHour) { %>
+                <% analytics.messagesByHour.forEach((hour, index) => { %>
+                '<%= hour.hour %>' <%= index < analytics.messagesByHour.length - 1 ? ',' : '' %>
+                <% }); %>
+            <% } %>],
+        datasets: [{
+            label: 'Messages',
+            data: [<% if(analytics.messagesByHour) { %>
+                    <% analytics.messagesByHour.forEach((hour, index) => { %>
+                        <%= hour.count %><%= index < analytics.messagesByHour.length - 1 ? ',' : '' %>
+                    <% }); %>
+                <% } %>],
+            backgroundColor: colors.info,
+                borderColor: colors.info,
+                    borderWidth: 1
+            }]
+        };
+
+        new Chart(document.getElementById('hourlyActivityChart'), {
+            type: 'bar',
+            data: hourlyData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f1f3f4'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Response Time Distribution Chart
+        const responseTimeData = {
+            labels: [<% if(analytics.responseTimeDistribution) { %>
+                <% Object.keys(analytics.responseTimeDistribution).forEach((time, index) => { %>
+                '<%= time %>' <%= index < Object.keys(analytics.responseTimeDistribution).length - 1 ? ',' : '' %>
+                <% }); %>
+            <% } %>],
+        datasets: [{
+            label: 'Responses',
+            data: [<% if(analytics.responseTimeDistribution) { %>
+                    <% Object.values(analytics.responseTimeDistribution).forEach((count, index) => { %>
+                        <%= count %><%= index < Object.values(analytics.responseTimeDistribution).length - 1 ? ',' : '' %>
+                    <% }); %>
+                <% } %>],
+            backgroundColor: [colors.success, colors.primary, colors.warning, colors.danger, colors.danger]
+            }]
+        };
+
+        new Chart(document.getElementById('responseTimeChart'), {
+            type: 'pie',
+            data: responseTimeData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        // Update uptime
+        async function updateUptime() {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+
+                if (status.uptime) {
+                    const hours = Math.floor(status.uptime / 3600);
+                    const minutes = Math.floor((status.uptime % 3600) / 60);
+                    document.getElementById('uptime').textContent = `${hours}h ${minutes}m`;
+                }
+            } catch (error) {
+                console.error('Failed to fetch uptime:', error);
+            }
+        }
+
+        // Export analytics
+        async function exportAnalytics() {
+            try {
+                const response = await fetch('/api/export-analytics');
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `analytics_report_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                alert('Failed to export analytics: ' + error.message);
+            }
+        }
+
+        // Real-time updates
+        function startRealTimeUpdates() {
+            setInterval(async () => {
+                try {
+                    const response = await fetch('/api/stats');
+                    const stats = await response.json();
+
+                    // Update key metrics
+                    document.querySelector('.metric-number.text-primary').textContent = stats.totalMessages || 0;
+                    document.querySelector('.metric-number.text-success').textContent = (stats.engagementRate || 0) + '%';
+                    document.querySelector('.metric-number.text-info').textContent = ((stats.averageResponseTime || 0) / 1000) + 's';
+                    document.querySelector('.metric-number.text-warning').textContent = (stats.conversionRate || 0) + '%';
+
+                    // Update today's messages
+                    const todayElement = document.querySelector('.metric-change.metric-up');
+                    if (todayElement) {
+                        todayElement.innerHTML = `<i class="fas fa-arrow-up me-1"></i>+${stats.todayMessages || 0} today`;
+                    }
+                } catch (error) {
+                    console.error('Failed to update real-time stats:', error);
+                }
+            }, 30000); // Update every 30 seconds
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            updateUptime();
+            startRealTimeUpdates();
+
+            // Update uptime every minute
+            setInterval(updateUptime, 60000);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function (e) {
+            // R for refresh
+            if (e.key === 'r' || e.key === 'R') {
+                if (!e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    location.reload();
+                }
+            }
+
+            // E for export
+            if (e.key === 'e' || e.key === 'E') {
+                if (!e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    exportAnalytics();
+                }
+            }
+
+            // B for back to dashboard
+            if (e.key === 'b' || e.key === 'B') {
+                if (!e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    window.location.href = '/';
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

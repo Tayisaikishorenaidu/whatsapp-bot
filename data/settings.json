@@ -1,5 +1,18 @@
 {
-  "replyDelay": 120,
-  "enableAutoReply": true,
-  "supportNumber": ""
+  "autoReply": true,
+  "replyDelay": 2000,
+  "language": "en",
+  "welcomeMessage": "Welcome to Student AI!",
+  "businessHours": {
+    "enabled": false,
+    "start": "09:00",
+    "end": "18:00",
+    "timezone": "Asia/Kolkata"
+  },
+  "features": {
+    "languageDetection": true,
+    "mediaSupport": true,
+    "analyticsTracking": true,
+    "exportFunctionality": true
+  }
 }
