@@ -20,10 +20,15 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h1>
-                            <i class="fab fa-whatsapp text-success"></i>
-                            WhatsApp Bot Dashboard
-                        </h1>
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="/media/images/newlogo.jpg" alt="Student AI Logo" class="me-3" style="max-height: 50px;">
+                            <div>
+                                <h1 class="mb-0">
+                                    <i class="fab fa-whatsapp text-success"></i>
+                                    WhatsApp Bot Dashboard
+                                </h1>
+                            </div>
+                        </div>
                         <div class="mt-3">
                             <span class="badge status-<%= connectionState || 'offline' %> p-2">
                                 <i class="fas fa-circle"></i>
@@ -59,10 +64,13 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h3><%= stats.totalContacts || 0 %></h3>
-                        <p>Total Contacts</p>
+                <div class="card h-100">
+                    <div class="card-body text-center d-flex flex-column">
+                        <h3 class="mb-3"><%= stats.totalContacts || 0 %></h3>
+                        <p class="mb-3">Total Contacts</p>
+                        <button class="btn btn-sm btn-outline-primary mt-auto" onclick="exportNewContacts()">
+                            <i class="fas fa-download me-1"></i> Export New Contacts
+                        </button>
                     </div>
                 </div>
             </div>
@@ -120,6 +128,39 @@
         setTimeout(() => {
             location.reload();
         }, 30000);
+
+        function exportNewContacts() {
+            fetch('/export-contacts')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'new_contacts_' + new Date().toISOString().split('T')[0] + '.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                })
+                .catch(error => {
+                    console.error('Error exporting contacts:', error);
+                    alert('Failed to export contacts. Please try again.');
+                });
+        }
     </script>
+    
+    <footer class="bg-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="mb-1">© 2025 Student AI. All copyrights & trademark reserved.</p>
+                    <p class="mb-1">A product by Deployh.ai Technologies Private Limited.</p>
+                    <p class="mb-1">Regd Office: Myytri Square, 2-41-6/11, Miyapur RD, Kondapur, Telangana - 500084.</p>
+                    <p class="mb-1">Contact Number: +91 7893816795</p>
+                    <p class="mb-0">Support Email: studentaisoftware@gmail.com</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

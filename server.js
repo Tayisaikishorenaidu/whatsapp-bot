@@ -146,7 +146,8 @@ app.get('/', (req, res) => {
             messages: recentMessages,
             settings,
             config: BOT_CONFIG,
-            moment
+            moment,
+            connectedClients: isConnected ? 1 : 0 // Adding connectedClients with a value of 1 if connected, 0 if not
         });
     } catch (error) {
         logger.error('Dashboard render error:', error);
@@ -321,21 +322,58 @@ app.get('/api/export-contacts', async (req, res) => {
             { header: 'First Contact', key: 'firstContact', width: 20 },
             { header: 'Last Contact', key: 'lastContact', width: 20 },
             { header: 'Message Count', key: 'messageCount', width: 15 },
-            { header: 'Demo Requested', key: 'demoRequested', width: 15 }
+            { header: 'Demo Requested', key: 'demoRequested', width: 15 },
+            { header: 'Trigger Message', key: 'triggerMessage', width: 30 }
         ];
 
-        // Add data
-        const contacts = dataStore.getAllContacts();
+        // Get all messages to find trigger messages
+        const allMessages = dataStore.getAllMessages();
+        const triggerPhrases = [
+            'hello', 'hi', 'hey', 'info', 'more info', 'information', 'details', 
+            'tell me more', 'about', 'student ai', 'can i get info', 'get more info',
+            'info please', 'information please', 'what is student ai', 'about student ai'
+        ];
+
+        // Find contacts who sent trigger messages
+        const triggerContacts = new Map();
+        
+        allMessages.forEach(message => {
+            if (!message.fromBot && message.text) {
+                const messageText = message.text.toLowerCase();
+                const isTrigger = triggerPhrases.some(phrase => messageText.includes(phrase));
+                
+                if (isTrigger) {
+                    const contactId = message.contactId;
+                    if (!triggerContacts.has(contactId)) {
+                        const contact = dataStore.getContact(contactId);
+                        if (contact) {
+                            triggerContacts.set(contactId, {
+                                ...contact,
+                                triggerMessage: message.text.substring(0, 50) + (message.text.length > 50 ? '...' : '')
+                            });
+                        }
+                    }
+                }
+            }
+        });
+
+        // Convert map values to array and sort by last message time (newest first)
+        const contacts = Array.from(triggerContacts.values()).sort((a, b) => 
+            (b.lastMessage || 0) - (a.lastMessage || 0)
+        );
+
+        // Add rows to worksheet
         contacts.forEach(contact => {
             worksheet.addRow({
                 name: contact.name || 'Unknown',
-                phone: contact.phone,
+                phone: contact.phone || contact.id.split('@')[0],
                 language: contact.language || 'Not set',
                 status: contact.status || 'Active',
                 firstContact: contact.firstContact ? moment(contact.firstContact).format('YYYY-MM-DD HH:mm:ss') : '',
                 lastContact: contact.lastContact ? moment(contact.lastContact).format('YYYY-MM-DD HH:mm:ss') : '',
                 messageCount: contact.messageCount || 0,
-                demoRequested: contact.demoRequested ? 'Yes' : 'No'
+                demoRequested: contact.demoRequested ? 'Yes' : 'No',
+                triggerMessage: contact.triggerMessage || ''
             });
         });
 
