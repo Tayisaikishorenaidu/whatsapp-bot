@@ -130,7 +130,7 @@
         }, 30000);
 
         function exportNewContacts() {
-            fetch('/export-contacts')
+            fetch('/api/export-contacts')
                 .then(response => response.blob())
                 .then(blob => {
                     const url = window.URL.createObjectURL(blob);

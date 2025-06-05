@@ -6,6 +6,7 @@ const fs = require('fs-extra');
 const qrcode = require('qrcode');
 const ExcelJS = require('exceljs');
 const moment = require('moment');
+const XLSX = require('xlsx');
 
 // Import custom modules
 const MessageHandler = require('./src/messageHandler');
@@ -13,7 +14,7 @@ const DataStore = require('./src/dataStore');
 const Logger = require('./src/logger');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3004;
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
@@ -385,9 +386,14 @@ app.get('/api/export-contacts', async (req, res) => {
             fgColor: { argb: 'FF25D366' }
         };
 
+        // Set proper headers for Excel file download
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename=contacts_${moment().format('YYYY-MM-DD')}.xlsx`);
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
 
+        // Write the workbook to the response
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
@@ -398,49 +404,42 @@ app.get('/api/export-contacts', async (req, res) => {
 
 app.get('/api/export-messages', async (req, res) => {
     try {
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Messages');
+        // Get all messages and filter for messages from triggered contacts
+        const allMessages = dataStore.getAllMessages();
+        const triggeredMessages = allMessages.filter(message => 
+            dataStore.isTriggeredContact(message.contactId)
+        );
 
-        // Add headers
-        worksheet.columns = [
-            { header: 'Timestamp', key: 'timestamp', width: 20 },
-            { header: 'Contact Name', key: 'contactName', width: 20 },
-            { header: 'Phone Number', key: 'phone', width: 15 },
-            { header: 'Message Type', key: 'type', width: 15 },
-            { header: 'Message', key: 'message', width: 50 },
-            { header: 'Media Type', key: 'mediaType', width: 15 },
-            { header: 'Language', key: 'language', width: 10 },
-            { header: 'Status', key: 'status', width: 15 }
+        // Prepare data for xlsx
+        const ws_data = [
+            ['Timestamp', 'Contact Name', 'Phone Number', 'Message Type', 'Message', 'Media Type', 'Language', 'Status'],
+            ...triggeredMessages.map(message => [
+                moment(message.timestamp).format('YYYY-MM-DD HH:mm:ss'),
+                message.contactName || 'Unknown',
+                message.phone,
+                message.fromBot ? 'Bot' : 'User',
+                message.text || '[Media Message]',
+                message.mediaType || '',
+                message.language || '',
+                message.status || 'delivered'
+            ])
         ];
 
-        // Add data
-        const messages = dataStore.getAllMessages();
-        messages.forEach(message => {
-            worksheet.addRow({
-                timestamp: moment(message.timestamp).format('YYYY-MM-DD HH:mm:ss'),
-                contactName: message.contactName || 'Unknown',
-                phone: message.phone,
-                type: message.fromBot ? 'Bot' : 'User',
-                message: message.text || '[Media Message]',
-                mediaType: message.mediaType || '',
-                language: message.language || '',
-                status: message.status || 'delivered'
-            });
-        });
-
-        // Style the headers
-        worksheet.getRow(1).font = { bold: true };
-        worksheet.getRow(1).fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FF25D366' }
-        };
+        // Create workbook and worksheet using xlsx
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Messages');
 
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename=messages_${moment().format('YYYY-MM-DD')}.xlsx`);
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
 
-        await workbook.xlsx.write(res);
-        res.end();
+        // Write the workbook to a buffer and send
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
+        res.status(200).send(wbout);
+
     } catch (error) {
         logger.error('Export messages error:', error);
         res.status(500).json({ error: error.message });

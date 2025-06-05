@@ -198,7 +198,7 @@ class DataStore {
 
         return {
             totalMessages: this.messages.length,
-            totalContacts: this.contacts.size,
+            totalContacts: this.getTriggeredContacts().length,
             botMessages: botMessages.length,
             userMessages: userMessages.length,
             todayMessages: todayMessages.length,
@@ -236,6 +236,7 @@ class DataStore {
 
     getTopActiveContacts(limit = 5) {
         return Array.from(this.contacts.values())
+            .filter(contact => this.isTriggeredContact(contact.id))
             .sort((a, b) => (b.messageCount || 0) - (a.messageCount || 0))
             .slice(0, limit)
             .map(contact => ({
@@ -420,6 +421,76 @@ class DataStore {
         if (data.settings) this.settings = { ...this.getDefaultSettings(), ...data.settings };
 
         this.save();
+    }
+
+    // Helper function to determine if a contact is a triggered contact
+    isTriggeredContact(contactId) {
+        const triggerPhrases = [
+            'hello! can i get more info on this?',
+            'can i get more info on this?',
+            'can i get info on this?',
+            'hello can i get more info',
+            'hello can i get info',
+            'can i get more info',
+            'can i get info',
+            'get more info',
+            'get info',
+            'more info please',
+            'info please',
+            'information please',
+            'tell me more',
+            'more details',
+            'student ai info',
+            'about student ai',
+            'what is student ai'
+        ];
+        const contactMessages = this.messages.filter(m => m.contactId === contactId && !m.fromBot && m.text);
+        return contactMessages.some(message => 
+            triggerPhrases.some(phrase => message.text.toLowerCase().includes(phrase))
+        );
+    }
+
+    // Helper function to get all triggered contacts
+    getTriggeredContacts() {
+        const triggeredContactsMap = new Map();
+        const triggerPhrases = [
+            'hello! can i get more info on this?',
+            'can i get more info on this?',
+            'can i get info on this?',
+            'hello can i get more info',
+            'hello can i get info',
+            'can i get more info',
+            'can i get info',
+            'get more info',
+            'get info',
+            'more info please',
+            'info please',
+            'information please',
+            'tell me more',
+            'more details',
+            'student ai info',
+            'about student ai',
+            'what is student ai'
+        ];
+
+        this.messages.forEach(message => {
+            if (!message.fromBot && message.text) {
+                const messageText = message.text.toLowerCase();
+                const isTrigger = triggerPhrases.some(phrase => messageText.includes(phrase));
+                
+                if (isTrigger) {
+                    const contactId = message.contactId;
+                    if (!triggeredContactsMap.has(contactId)) {
+                         const contact = this.contacts.get(contactId);
+                         if (contact) {
+                             triggeredContactsMap.set(contactId, contact);
+                         }
+                    }
+                }
+            }
+        });
+
+        return Array.from(triggeredContactsMap.values());
     }
 }
 
